@@ -12,6 +12,23 @@ not compile out of the box on your machine, the code can still be reused in
 your projects. You should be able to just plug it into an OpenGL application
 that compiles and runs on your machine.
 
+## Dependencies
+
+These examples have some dependencies:
+
+* [http://www.glfw.org](GLFW 3.1.1)
+
+## Compiling
+
+### OS X
+
+Make sure that you have compiled the GLFW dependency for your system as a
+static library. You should now have a file called `libglfw3.a`. Place this
+in a subdirectory `lib` of the root folder (on the same level as this `README.md` file).
+
+Now you can use the command `make EXAMPLE_NAME` to compile an example. The
+resulting binaries will be placed in the `build` folder.
+
 ## License
 
 These examples are available under the MIT License. This is because public
