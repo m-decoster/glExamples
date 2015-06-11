@@ -46,8 +46,8 @@ domain is not recognized in every country. For more information, read
 
 To compile all examples, you can run `make` or `make all`.
 
-1. [01 - Hello Triangle](Hello Triangle)
-2. [02 - Hello Sprite](Hello Sprite)
+1. [Hello Triangle](#01---Hello-Triangle)
+2. [Hello Sprite](#02---Hello-Sprite)
 
 ### 01 - Hello Triangle
 
