@@ -16,7 +16,7 @@ that compiles and runs on your machine.
 
 These examples have some dependencies:
 
-* [http://www.glfw.org](GLFW 3.1.1)
+* [GLFW 3.1.1](http://www.glfw.org)
 
 ## Compiling
 
