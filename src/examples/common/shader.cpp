@@ -28,7 +28,7 @@ GLuint createShaderProgram(GLuint vertex, GLuint fragment)
     return program;
 }
 
-GLuint linkShader(GLuint program)
+bool linkShader(GLuint program)
 {
     glLinkProgram(program);
     int status;
@@ -39,12 +39,12 @@ GLuint linkShader(GLuint program)
         char log[512];
         glGetProgramInfoLog(program, 512, NULL, log);
         std::cerr << log << std::endl;
-        return 0;
+        return false;
     }
-    return program;
+    return true;
 }
 
-GLuint validateShader(GLuint program)
+bool validateShader(GLuint program)
 {
     // OS X needs to have a vao bound before validating programs
     // I am not sure why
@@ -65,11 +65,11 @@ GLuint validateShader(GLuint program)
         glBindVertexArray(0);
         glDeleteVertexArrays(1, &vao);
 
-        return 0;
+        return false;
     }
 
     glBindVertexArray(0);
     glDeleteVertexArrays(1, &vao);
 
-    return program;
+    return true;
 }

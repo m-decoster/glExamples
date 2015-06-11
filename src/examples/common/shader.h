@@ -5,7 +5,7 @@
 
 GLuint createShader(const char* src, GLenum shaderType);
 GLuint createShaderProgram(GLuint vertex, GLuint fragment);
-GLuint linkShader(GLuint program);
-GLuint validateShader(GLuint program);
+bool linkShader(GLuint program);
+bool validateShader(GLuint program);
 
 #endif
