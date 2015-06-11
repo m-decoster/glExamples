@@ -46,6 +46,9 @@ domain is not recognized in every country. For more information, read
 
 To compile all examples, you can run `make` or `make all`.
 
+* [01: Hello Triangle][]
+* [02: Hello Sprite][]
+
 ### 01: Hello Triangle
 
 **Compile**: `make hello_triangle`  
