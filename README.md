@@ -16,8 +16,9 @@ that compiles and runs on your machine.
 
 These examples have some dependencies:
 
-* [GLFW 3.1.1](http://www.glfw.org)
+* [GLFW](http://www.glfw.org)
 * [SOIL](http://www.lonesock.net/soil.html)
+* [GLM](http://glm.g-truc.net)
 
 ## Compiling
 
