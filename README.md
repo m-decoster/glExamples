@@ -44,4 +44,6 @@ domain is not recognized in every country. For more information, read
 
 This example shows the minimal code needed to render a simple colored triangle.
 
+[Code](src/examples/01-hello_triangle)
+
 ![hello triangle](img/01-hello_triangle.tiff)
