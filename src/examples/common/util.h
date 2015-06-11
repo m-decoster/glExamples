@@ -7,6 +7,6 @@
 #include <cstdlib>
 #include <iostream>
 
-void error_callback(int error, const char* description);
+GLFWwindow* init(const char* exampleName, int width, int height);
 
 #endif
