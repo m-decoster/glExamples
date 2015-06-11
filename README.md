@@ -34,3 +34,14 @@ resulting binaries will be placed in the `build` folder.
 These examples are available under the MIT License. This is because public
 domain is not recognized in every country. For more information, read
 [this question and answer](http://programmers.stackexchange.com/questions/147111/what-is-wrong-with-the-unlicense).
+
+## Examples
+
+### Hello Triangle
+
+**Compile**: `make hello_triangle`  
+**Run**: `bin/01-hello-triangle.out`
+
+This example shows the minimal code needed to render a simple colored triangle.
+
+![hello triangle](img/01-hello_triangle.tiff)
