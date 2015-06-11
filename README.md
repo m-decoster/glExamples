@@ -49,7 +49,7 @@ To compile all examples, you can run `make` or `make all`.
 ### 01: Hello Triangle
 
 **Compile**: `make hello_triangle`  
-**Run**: `cd bin; 01-hello-triangle.out`
+**Run**: `cd bin; ./01-hello-triangle.out`
 
 This example shows the minimal code needed to render a simple colored triangle.
 
@@ -60,7 +60,7 @@ This example shows the minimal code needed to render a simple colored triangle.
 ### 02: Hello Sprite
 
 **Compile**: `make hello_sprite`  
-**Run**: `cd bin; 02-hello_sprite.out`
+**Run**: `cd bin; ./02-hello_sprite.out`
 
 This example shows the minimal code needed to render a textured quad. It also uses
 `glDrawElements` to reduce duplication of vertices.
