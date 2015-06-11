@@ -29,12 +29,12 @@ in a subdirectory `lib` of the root folder (on the same level as this `README.md
 
 Download the latest release of SOIL. You can try putting the binary in the `lib` folder, but this
 will most likely fail if your computer is from the last few years. You're best off using the supplied
-makefile in the `projects/makefile` folder. Note that you need to alter a line if your machine is 64 bit:
+makefile in the `projects/makefile` folder. Note that you need to alter a line if your OS is 64 bit:
 change the line that says `CXX = gcc` to `CXX = gcc -arch x86_64`. Run `make` and you will find the new
 `libSOIL.a` file in the `lib` subdirectory of the directory where you downloaded SOIL to.
 
 Now you can use the command `make EXAMPLE_NAME` to compile an example. The
-resulting binaries will be placed in the `build` folder.
+resulting binaries will be placed in the `bin` folder.
 
 ## License
 
