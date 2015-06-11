@@ -2,10 +2,12 @@
 
 GLuint createShader(const char* src, GLenum shaderType)
 {
+    // Create a shader and load the string as source code and compile it
     GLuint s = glCreateShader(shaderType);
     glShaderSource(s, 1, (const GLchar**)&src, NULL);
     glCompileShader(s);
     
+    // Check compilation status: this will report syntax errors
     GLint status;
     glGetShaderiv(s, GL_COMPILE_STATUS, &status);
     if(!status)
@@ -22,6 +24,7 @@ GLuint createShader(const char* src, GLenum shaderType)
 
 GLuint createShaderProgram(GLuint vertex, GLuint fragment)
 {
+    // Create a shader program and attach the vertex and fragment shaders
     GLuint program = glCreateProgram();
     glAttachShader(program, vertex);
     glAttachShader(program, fragment);
@@ -30,6 +33,7 @@ GLuint createShaderProgram(GLuint vertex, GLuint fragment)
 
 bool linkShader(GLuint program)
 {
+    // Link the program and check the status: this will report semantics errors
     glLinkProgram(program);
     int status;
     glGetProgramiv(program, GL_LINK_STATUS, &status);
@@ -52,6 +56,7 @@ bool validateShader(GLuint program)
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
+    // Validate the program (some tutorials don't show this but it's best practice)
     glValidateProgram(program);
     int status;
     glGetProgramiv(program, GL_VALIDATE_STATUS, &status);
@@ -68,6 +73,7 @@ bool validateShader(GLuint program)
         return false;
     }
 
+    // Unbind the vao because we no longer need it
     glBindVertexArray(0);
     glDeleteVertexArrays(1, &vao);
 

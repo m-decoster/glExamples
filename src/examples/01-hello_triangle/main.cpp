@@ -63,6 +63,11 @@ int main(void)
     {
         return -1;
     }
+    // Detach and delete the shaders, because we no longer need them
+    glDetachShader(program, vertex);
+    glDeleteShader(vertex);
+    glDetachShader(program, fragment);
+    glDeleteShader(fragment);
 
     glUseProgram(program); // Set this as the current shader program
 
@@ -113,6 +118,10 @@ int main(void)
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
+    // Clean up
+    glDeleteBuffers(1, &vbo);
+    glDeleteVertexArrays(1, &vao);
 
     glfwTerminate();
     return 0;
