@@ -46,10 +46,10 @@ domain is not recognized in every country. For more information, read
 
 To compile all examples, you can run `make` or `make all`.
 
-* [01: Hello Triangle][]
-* [02: Hello Sprite][]
+* [01 - Hello Triangle][]
+* [02 - Hello Sprite][]
 
-### 01: Hello Triangle
+### 01 - Hello Triangle
 
 **Compile**: `make hello_triangle`  
 **Run**: `cd bin; ./01-hello-triangle.out`
@@ -60,7 +60,7 @@ This example shows the minimal code needed to render a simple colored triangle.
 
 ![hello triangle](img/01-hello_triangle.tiff)
 
-### 02: Hello Sprite
+### 02 - Hello Sprite
 
 **Compile**: `make hello_sprite`  
 **Run**: `cd bin; ./02-hello_sprite.out`
