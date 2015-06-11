@@ -37,7 +37,7 @@ domain is not recognized in every country. For more information, read
 
 ## Examples
 
-### Hello Triangle
+### 01: Hello Triangle
 
 **Compile**: `make hello_triangle`  
 **Run**: `bin/01-hello-triangle.out`
