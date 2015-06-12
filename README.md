@@ -5,8 +5,8 @@ These examples have been written in C++ and use OpenGL 3.3.
 
 **These are not tutorials**. While I have tried to document the code
 as much as possible, the why and how is not explained. If you want a
-tutorial on OpenGL, I suggest you try out [open.gl](open.gl) or
-[learn opengl](learnopengl.com).  
+tutorial on OpenGL, I suggest you try out [open.gl](http://open.gl) or
+[learn opengl](http://learnopengl.com).  
 The point of these examples is not to teach you how 3D rendering works.
 These examples merely serve as a point of reference as to how you can
 implement solutions to typical problems in OpenGL 3.3.
