@@ -49,6 +49,7 @@ To compile all examples, you can run `make` or `make all`.
 
 1. [Hello Triangle](#hello-triangle)
 2. [Hello Sprite](#hello-sprite)
+3. [Hello Cube](#hello-cube)
 
 ### Hello Triangle
 
@@ -72,3 +73,15 @@ This example shows the minimal code needed to render a textured quad. It also us
 [Code](src/examples/02-hello_sprite)
 
 ![hello sprite](img/02-hello_sprite.tiff)
+
+### Hello Cube
+
+**Compile**: `make hello_cube`  
+**Run**: `cd bin; ./03-hello_cube.out`
+
+This example introduces 3D transformations and perspective projection. It also
+uses depth testing to make sure the cube is rendered correctly.
+
+[Code](src/examples/03-hello_cube)
+
+![hello cube](img/03-hello_cube.tiff)
