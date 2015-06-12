@@ -43,13 +43,17 @@ int main(void)
         return -1;
     }
 
+    // We will need to enable depth testing, so that OpenGL draws further
+    // vertices first
+    glEnable(GL_DEPTH_TEST);
+
     // Create a perspective projection matrix
     glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)640/(float)480, 0.1f, 1000.0f);
     // vertex_clip = M_projection . M_view . M_model . vertex_local
     // Create the model matrix
     glm::mat4 model;
     // Rotate just a bit (the vector indicates the axes on which to rotate)
-    model = glm::rotate(model, -glm::radians(15.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    model = glm::rotate(model, -glm::radians(35.0f), glm::vec3(0.0f, 1.0f, 1.0f));
     // Create the view matrix
     glm::mat4 view;
     // Move the scene so that we can see the cube
@@ -106,28 +110,55 @@ int main(void)
     float vertices[] =
     {
         // x   y      z     r     g     b     u     v
-        -0.5f, 0.5f,  0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        0.5f,  0.5f,  0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-        0.5f, -0.5f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-        -0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f
+        -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
+         0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+         0.5f,  0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
+    
+        -0.5f, -0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
+         0.5f, -0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
+    
+        -0.5f,  0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
+    
+         0.5f,  0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+         0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
+         0.5f,  0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
+    
+        -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+         0.5f, -0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
+         0.5f, -0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
+    
+        -0.5f,  0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
+         0.5f,  0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f
     };
 
     // Upload the vertices to the buffer
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    GLuint ebo;
-    glGenBuffers(1, &ebo);
-
-    GLuint indices[] =
-    {
-        0, 1, 2,
-        2, 3, 0
-    };
-
-    // Upload the indices (elements) to the buffer
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    // Because it's a bit tedious, we won't be using indices here
+    // How to use them should be self-explanatory
 
     // Enable the vertex attributes and upload their data (see: layout(location=x))
     // NOTE: We have added a z coordinate so this code has again changed!
@@ -157,8 +188,8 @@ int main(void)
 
     while(!glfwWindowShouldClose(window))
     {
-        // Clear
-        glClear(GL_COLOR_BUFFER_BIT);
+        // Clear (note the addition of GL_DEPTH_BUFFER_BIT)
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Just for fun, rotate the cube over time
         model = glm::rotate(model, 40.0f * glm::radians((float)glfwGetTime()), glm::vec3(1.0f, 0.0f, 0.0f));
@@ -173,8 +204,8 @@ int main(void)
         GLint projUL = glGetUniformLocation(program, "projection");
         glUniformMatrix4fv(projUL, 1, GL_FALSE, glm::value_ptr(proj));
 
-        // The VAO is still bound so just draw the 6 vertices
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        // The VAO is still bound so just draw the 36 vertices
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
         // Tip: if nothing is drawn, check the return value of glGetError and google it
 
@@ -185,7 +216,6 @@ int main(void)
 
     // Clean up
     glDeleteBuffers(1, &vbo);
-    glDeleteBuffers(1, &ebo);
     glDeleteVertexArrays(1, &vao);
     glDeleteTextures(1, &texture);
 
