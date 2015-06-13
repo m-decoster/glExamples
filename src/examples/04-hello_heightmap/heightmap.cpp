@@ -1,5 +1,5 @@
 #include "heightmap.h"
-#include "util.h"
+#include "../common/util.h"
 
 HeightMap::HeightMap(float heightScale)
     : w(0), h(0), heightScale(heightScale)
@@ -27,24 +27,20 @@ const std::vector<float>& HeightMap::getData() const
 
 bool HeightMap::load(const char* fileName)
 {
-    int channels;
-    unsigned char* img = SOIL_load_image(fileName, &w, &h, &channels, SOIL_LOAD_L);
+    unsigned char* img = SOIL_load_image(fileName, &w, &h, NULL, SOIL_LOAD_RGB);
     if(!img)
     {
         std::cerr << "Error loading heightmap " << fileName << ": " << SOIL_last_result() << std::endl;
         return false;
     }
-    if(channels != 1)
-    {
-        std::cerr << "Error loading heightmap " << fileName << ": channels should be 1" << std::endl;
-    }
 
     data.resize(w * h);
 
-    for(int i = 0; i < w * h; ++i)
+    for(int i = 0; i < w * h; i += 3) // += 3: (r g b)
     {
-        unsigned char tile = img[i];
-        data[i] = tile / 255.0f * heightScale;
+        int tile = img[i] + img[i + 1] + img[i + 3];
+        unsigned char greyTile = tile / 3;
+        data[i] = greyTile / 255.0f * heightScale;
     }
 
     SOIL_free_image_data(img);
