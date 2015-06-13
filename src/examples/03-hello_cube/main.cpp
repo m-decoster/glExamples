@@ -200,7 +200,7 @@ int main(void)
         glUniformMatrix4fv(modelUL, 1, GL_FALSE, glm::value_ptr(model));
         GLint viewUL = glGetUniformLocation(program, "view");
         glUniformMatrix4fv(viewUL, 1, GL_FALSE, glm::value_ptr(view));
-        // This can be moved out of the loop because 
+        // This can be moved out of the loop because it rarely changes
         GLint projUL = glGetUniformLocation(program, "projection");
         glUniformMatrix4fv(projUL, 1, GL_FALSE, glm::value_ptr(proj));
 
