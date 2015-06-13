@@ -27,11 +27,16 @@ const std::vector<float>& HeightMap::getData() const
 
 bool HeightMap::load(const char* fileName)
 {
-    unsigned char* img = SOIL_load_image(fileName, &w, &h, NULL, SOIL_LOAD_RGB);
+    int channels;
+    unsigned char* img = SOIL_load_image(fileName, &w, &h, &channels, SOIL_LOAD_L);
     if(!img)
     {
         std::cerr << "Error loading heightmap " << fileName << ": " << SOIL_last_result() << std::endl;
         return false;
+    }
+    if(channels != 1)
+    {
+        std::cerr << "Error loading heightmap " << fileName << ": channels should be 1" << std::endl;
     }
 
     data.resize(w * h);
