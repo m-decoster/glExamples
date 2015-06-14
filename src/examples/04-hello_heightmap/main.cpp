@@ -1,74 +1,38 @@
 #include "../common/util.h"
 #include "../common/shader.h"
+#include "heightmap.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <vector>
+#include <cmath>
 
 static glm::mat4 model, view, proj;
 
-static const float SPEED = 2.0f;
+static const float SPEED = 50.0f; // Camera transform speed
+static const int SIZE = 10.0f; // Size of a single tile in the heightmap
+static const float MOUSE_SPEED = 0.025f;
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-    if (key == GLFW_KEY_RIGHT && action == GLFW_REPEAT)
-    {
-        view = glm::translate(view, glm::vec3(-SPEED * glfwGetTime(), 0.0f, 0.0f));
-    }
-    if (key == GLFW_KEY_LEFT && action == GLFW_REPEAT)
-    {
-        view = glm::translate(view, glm::vec3(SPEED * glfwGetTime(), 0.0f, 0.0f));
-    }
-    if (key == GLFW_KEY_UP && action == GLFW_REPEAT)
-    {
-        view = glm::translate(view, glm::vec3(0.0f, SPEED * glfwGetTime(), 0.0f));
-    }
-    if (key == GLFW_KEY_DOWN && action == GLFW_REPEAT)
-    {
-        view = glm::translate(view, glm::vec3(0.0f, -SPEED * glfwGetTime(), 0.0f));
-    }
-    if (key == GLFW_KEY_F && action == GLFW_REPEAT)
-    {
-        view = glm::translate(view, glm::vec3(0.0f, 0.0f, SPEED * glfwGetTime()));
-    }
-    if (key == GLFW_KEY_R && action == GLFW_REPEAT)
-    {
-        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -SPEED * glfwGetTime()));
-    }
-    if (key == GLFW_KEY_K && action == GLFW_PRESS)
-    {
-        view = glm::rotate(view, glm::radians(45.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-    }
-    if (key == GLFW_KEY_I && action == GLFW_PRESS)
-    {
-        view = glm::rotate(view, glm::radians(-45.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-    }
-}
+static glm::vec3 cameraPosition;
+static float horizontalAngle = 0.0f;
+static float verticalAngle = 0.0f;
 
 const char* VERTEX_SRC = "#version 330 core\n"
                           "layout(location=0) in vec3 position;"          // Vertex position (x, y, z)
-                          "layout(location=1) in vec3 color;"             // Vertex color (r, g, b)
-                          "layout(location=2) in vec2 texcoord;"          // Texture coordinate (u, v)
                           "uniform mat4 model;"
                           "uniform mat4 view;"
                           "uniform mat4 projection;"
-                          "out vec3 fColor;"                              // Vertex shader has to pass color to fragment shader
-                          "out vec2 fTexcoord;"                           // Pass to fragment shader
                           "void main()"
                           "{"
-                          "    fColor = color;"                           // Pass color to fragment shader
-                          "    fTexcoord = texcoord;"                     // Pass texcoord to fragment shader
                           "    gl_Position = projection * view * model * vec4(position, 1.0);"     // Place vertex at (x, y, z, 1) and then transform it according to the projection, view and model matrices
                           "}";
 
 const char* FRAGMENT_SRC = "#version 330 core\n"
-                           "in vec3 fColor;"                              // From the vertex shader
-                           "in vec2 fTexcoord;"                           // From the vertex shader
                            "uniform sampler2D tex;"                       // The texture
                            "out vec4 outputColor;"                        // The color of the resulting fragment
                            "void main()"
                            "{"
-                           "    outputColor = texture(tex, fTexcoord)"   // Color using the color and texutre
-                           "                  * vec4(fColor, 1.0);"
+                           "    outputColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);"
                            "}";
 
 int main(void)
@@ -83,12 +47,20 @@ int main(void)
         return -1;
     }
 
-    // Set a key callback so that we can move the camera
-    glfwSetKeyCallback(window, key_callback);
+    // Hide the cursor (escape will exit the application)
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // We will need to enable depth testing, so that OpenGL draws further
     // vertices first
     glEnable(GL_DEPTH_TEST);
+
+    // Draw wireframe
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+    // Enable backface culling
+    glEnable(GL_CULL_FACE); 
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW); // front facing vertices are defined counter clock wise
 
     // Create a perspective projection matrix
     proj = glm::perspective(glm::radians(45.0f), (float)640/(float)480, 0.1f, 1000.0f);
@@ -99,6 +71,48 @@ int main(void)
     model = glm::rotate(model, -glm::radians(35.0f), glm::vec3(0.0f, 1.0f, 1.0f));
     // Create the view matrix
     view = glm::mat4();
+    cameraPosition = glm::vec3(0.0f, 0.0f, -3.0f);
+
+    // Load the heightmap
+    HeightMap map(20.0f);
+    if(!map.load("heightmap.bmp"))
+    {
+        return -1;
+    }
+    const std::vector<float>& data = map.getData();
+    int w = map.getWidth(), h = map.getHeight();
+    std::vector<float> vertices;
+    for(int i = 0; i < h; ++i)
+    {
+        for(int j = 0; j < w; ++j)
+        {
+            float x = (float)i;
+            float z = (float)j;
+            float height = data[i * w + j];
+
+            vertices.push_back(x * SIZE);
+            vertices.push_back(height);
+            vertices.push_back(z * SIZE);
+            // This is where you could add extra information,
+            // like colour or texture coordinates.
+            // You would have to change the vertex attribute pointer
+            // code as well!
+        }
+    }
+    std::vector<GLuint> indices;
+    for(int i = 0; i < (h - 1); ++i)
+    {
+        for(int j = 0; j < (w - 1); ++j)
+        {
+            // We create six indices for each tile
+            indices.push_back(i * w + j);
+            indices.push_back((i + 1) * w + j);
+            indices.push_back(i * w + j + 1);
+            indices.push_back(i * w + j + 1);
+            indices.push_back((i + 1) * w + j);
+            indices.push_back((i + 1) * w + j + 1);
+        }
+    }
 
     // We start by creating a vertex and fragment shader
     // from the above strings
@@ -148,88 +162,74 @@ int main(void)
     GLuint vbo;
     glGenBuffers(1, &vbo);
 
-    float vertices[] =
-    {
-        // x   y      z     r     g     b     u     v
-        -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-         0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-         0.5f,  0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-    
-        -0.5f, -0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-         0.5f, -0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-    
-        -0.5f,  0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
-    
-         0.5f,  0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-         0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-         0.5f,  0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
-    
-        -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-         0.5f, -0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
-         0.5f, -0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
-    
-        -0.5f,  0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
-         0.5f,  0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f
-    };
-
     // Upload the vertices to the buffer
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.size(), &vertices[0], GL_STATIC_DRAW);
 
-    // Because it's a bit tedious, we won't be using indices here
-    // How to use them should be self-explanatory
+    GLuint ebo;
+    glGenBuffers(1, &ebo);
+
+    // Upload the indices to the buffer
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * indices.size(), &indices[0], GL_STATIC_DRAW);
 
     // Enable the vertex attributes and upload their data (see: layout(location=x))
-    // NOTE: We have added a z coordinate so this code has again changed!
     glEnableVertexAttribArray(0); // position
-    // 3 floats: x and y, but 8 floats in total per row
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), 0);
-    glEnableVertexAttribArray(1); // color
-    // 3 floats: r, g and b, but 8 floats in total per row and start at the 4th one
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
-    glEnableVertexAttribArray(2); // texture coordinates
-    // 2 floats: u and v, but 8 floats in total per row and start at the 7th one
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(6 * sizeof(GLfloat)));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
 
     // We have now successfully created a drawable Vertex Array Object
 
-    // Load the texture and bind it to the uniform
-    int w, h;
-    GLuint texture = loadImage("image.png", &w, &h, 0); // GL_TEXTURE0
-    if(!texture)
-    {
-        return -1;
-    }
-    glUniform1i(glGetUniformLocation(program, "tex"), 0); // GL_TEXTURE0
-    
     // Set the clear color to a light grey
     glClearColor(0.75f, 0.75f, 0.75f, 1.0f);
 
     while(!glfwWindowShouldClose(window))
     {
+        if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        {
+            break;
+        }
+
+        float deltaTime = (float)glfwGetTime();
         glfwSetTime(0.0);
+
+        // Get mouse position
+        double xpos, ypos;
+        glfwGetCursorPos(window, &xpos, &ypos);
+        glfwSetCursorPos(window, 320, 240);
+        horizontalAngle += MOUSE_SPEED * deltaTime * float(320 - xpos);
+        verticalAngle   += MOUSE_SPEED * deltaTime * float(240 - ypos);
+        // Face direction
+        glm::vec3 direction(
+                cos(verticalAngle) * sin(horizontalAngle),
+                sin(verticalAngle),
+                cos(verticalAngle) * cos(horizontalAngle)
+                );
+        // Right vector (because up can change, but right cannot)
+        glm::vec3 right = glm::vec3(
+                sin(horizontalAngle - 3.14f/2.0f),
+                0,
+                cos(horizontalAngle - 3.14f/2.0f)
+                );
+        glm::vec3 up = glm::cross(right, direction);
+
+        // Get key input
+        if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+        {
+            cameraPosition += direction * deltaTime * SPEED;
+        }
+        if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+        {
+            cameraPosition -= direction * deltaTime * SPEED;
+        }
+        if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+        {
+            cameraPosition -= right * deltaTime * SPEED;
+        }
+        else if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+        {
+            cameraPosition += right * deltaTime * SPEED;
+        }
+        view = glm::lookAt(cameraPosition, cameraPosition + direction, up);
 
         // Clear (note the addition of GL_DEPTH_BUFFER_BIT)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -243,8 +243,8 @@ int main(void)
         GLint projUL = glGetUniformLocation(program, "projection");
         glUniformMatrix4fv(projUL, 1, GL_FALSE, glm::value_ptr(proj));
 
-        // The VAO is still bound so just draw the 36 vertices
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        // The VAO is still bound so just draw the vertices
+        glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 
         // Tip: if nothing is drawn, check the return value of glGetError and google it
 
@@ -255,8 +255,8 @@ int main(void)
 
     // Clean up
     glDeleteBuffers(1, &vbo);
+    glDeleteBuffers(1, &ebo);
     glDeleteVertexArrays(1, &vao);
-    glDeleteTextures(1, &texture);
 
     glfwTerminate();
     return 0;

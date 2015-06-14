@@ -58,6 +58,7 @@ To compile all examples, you can run `make` or `make all`.
 1. [Hello Triangle](#hello-triangle)
 2. [Hello Sprite](#hello-sprite)
 3. [Hello Cube](#hello-cube)
+4. [Hello Heightmap](#hello-heightmap)
 
 ### Hello Triangle
 
@@ -93,3 +94,17 @@ uses depth testing to make sure the cube is rendered correctly.
 [Code](src/examples/03-hello_cube)
 
 ![hello cube](img/03-hello_cube.tiff)
+
+### Hello Heightmap
+
+**Compile**: `make hello_heightmap`  
+**Run**: `cd bin; ./04-hello_heightmap.out`
+
+This example introduces the loading and rendering of heightmaps. It also introduces
+smooth camera movement and looking around with the mouse. The terrain is rendered without
+color or texture and in wireframe. Adding color and texture is a good excercise for the beginning
+reader.
+
+[Code](src/examples/04-hello_heightmap)
+
+![hello cube](img/04-hello_heightmap.tiff)
