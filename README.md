@@ -101,9 +101,10 @@ uses depth testing to make sure the cube is rendered correctly.
 **Run**: `cd bin; ./04-hello_heightmap.out`
 
 This example introduces the loading and rendering of heightmaps. It also introduces
-smooth camera movement and looking around with the mouse. The terrain is rendered without
+smooth camera movement and looking around with the mouse. The heightmap is rendered without
 color or texture and in wireframe. Adding color and texture is a good exercise for the beginning
 reader.
+Finally, we also introduce backface culling.
 
 [Code](src/examples/04-hello_heightmap)
 
