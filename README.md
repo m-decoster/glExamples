@@ -27,6 +27,7 @@ These examples have some dependencies:
 * [GLFW](http://www.glfw.org)
 * [SOIL](http://www.lonesock.net/soil.html)
 * [GLM](http://glm.g-truc.net)
+* [ASSIMP](http://assimp.sf.net/)
 
 ## Compiling
 
@@ -42,6 +43,8 @@ makefile in the `projects/makefile` folder. Note that you need to alter a line i
 change the line that says `CXX = gcc` to `CXX = gcc -arch x86_64`. Run `make` and you will find the new
 `libSOIL.a` file in the `lib` subdirectory of the directory where you downloaded SOIL to.
 
+Download the latest stable release of ASSIMP. You can find this release on [their GitHub repository page](https://github.com/assimp/assimp). Generate build files and compile the static library. Put the resulting `libassimp.a` file in the `lib` folder where you put the other library files.
+
 Now you can use the command `make EXAMPLE_NAME` to compile an example. The
 resulting binaries will be placed in the `bin` folder.
 
@@ -50,6 +53,8 @@ resulting binaries will be placed in the `bin` folder.
 These examples are available under the MIT License. This is because public
 domain is not recognized in every country. For more information, read
 [this question and answer](http://programmers.stackexchange.com/questions/147111/what-is-wrong-with-the-unlicense).
+
+Licenses of third party libraries are available in the [3rd\_party](3rd_party) folder.
 
 ## Examples
 
