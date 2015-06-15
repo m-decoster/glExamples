@@ -51,6 +51,8 @@ These examples are available under the MIT License. This is because public
 domain is not recognized in every country. For more information, read
 [this question and answer](http://programmers.stackexchange.com/questions/147111/what-is-wrong-with-the-unlicense).
 
+Licenses of third party libraries are available in the [3rd\_party](3rd_party) folder.
+
 ## Examples
 
 To compile all examples, you can run `make` or `make all`.
