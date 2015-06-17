@@ -65,6 +65,7 @@ To compile all examples, you can run `make` or `make all`.
     2. [Hello Sprite](#hello-sprite)
     3. [Hello Cube](#hello-cube)
     4. [Hello Heightmap](#hello-heightmap)
+    5. [Hello Mesh](#hello-mesh)
 
 ### Hello Triangle
 
