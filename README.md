@@ -121,6 +121,8 @@ Finally, we also introduce backface culling.
 **Run**: `cd bin; ./05-hello_mesh.out`
 
 This example uses Assimp to load a mesh. We load the material ourselves instead of using Assimp.
+In this example we have moved the shader loading to a `Material` class and the data loading to
+a `Mesh` class. We will be making changes to these classes in later examples if needed.
 
 [Code](src/examples/05-hello_mesh)
 
