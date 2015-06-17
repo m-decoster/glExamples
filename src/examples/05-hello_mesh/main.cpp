@@ -1,6 +1,7 @@
 #include "../common/util.h"
 #include "../common/shader.h"
 #include "material.h"
+#include "mesh.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -24,11 +25,11 @@ const char* VERTEX_SRC = "#version 330 core\n"
 const char* FRAGMENT_SRC = "#version 330 core\n"
                            "in vec3 fColor;"                              // From the vertex shader
                            "in vec2 fTexcoord;"                           // From the vertex shader
-                           "uniform sampler2D tex;"                       // The texture
+                           "uniform sampler2D diffuse;"                       // The texture
                            "out vec4 outputColor;"                        // The color of the resulting fragment
                            "void main()"
                            "{"
-                           "    outputColor = texture(tex, fTexcoord)"   // Color using the color and texutre
+                           "    outputColor = texture(diffuse, fTexcoord)"   // Color using the color and texutre
                            "                  * vec4(fColor, 1.0);"
                            "}";
 
@@ -51,14 +52,10 @@ int main(void)
     // Create a perspective projection matrix
     glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)640/(float)480, 0.1f, 1000.0f);
     // vertex_clip = M_projection . M_view . M_model . vertex_local
-    // Create the model matrix
-    glm::mat4 model;
-    // Rotate just a bit (the vector indicates the axes on which to rotate)
-    model = glm::rotate(model, -glm::radians(35.0f), glm::vec3(0.0f, 1.0f, 1.0f));
     // Create the view matrix
     glm::mat4 view;
     // Move the scene so that we can see the mesh
-    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -8.0f));
+    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -4.0f));
 
     // In this example, the shader and vertex array object are set up in another class
     // see mesh.h & material.h
@@ -70,13 +67,22 @@ int main(void)
         std::cerr << "Could not load shaders" << std::endl;
         return -1;
     }
-    if(!mat.use())
+    mat.use();
+    int w, h;
+    GLuint texture = loadImage("image.png", &w, &h, 0);
+    if(!texture)
     {
-        std::cerr << "Material is not bound" << std::endl;
+        std::cerr << "Could not load texture" << std::endl;
         return -1;
     }
+    mat.setDiffuseTexture(texture);
 
     // Load the mesh
+    Mesh mesh;
+    if(!mesh.load("test_mesh.obj"))
+    {
+        std::cerr << "Could not load mesh" << std::endl;
+    }
     
     // Set the clear color to a light grey
     glClearColor(0.75f, 0.75f, 0.75f, 1.0f);
@@ -86,17 +92,15 @@ int main(void)
         // Clear (note the addition of GL_DEPTH_BUFFER_BIT)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Just for fun, rotate the cube over time
-        model = glm::rotate(model, 40.0f * glm::radians((float)glfwGetTime()), glm::vec3(1.0f, 0.0f, 0.0f));
-        glfwSetTime(0.0);
+        const glm::mat4& model = mesh.getModelMatrix();
 
         // Upload the MVP matrices
+        mat.bind();
         mat.setUniform("model", model);
         mat.setUniform("view", view);
         mat.setUniform("projection", proj);
 
-        // The VAO is still bound so just draw the 36 vertices
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        mesh.render();
 
         // Tip: if nothing is drawn, check the return value of glGetError and google it
 
@@ -106,8 +110,6 @@ int main(void)
     }
 
     // Clean up
-    glDeleteBuffers(1, &vbo);
-    glDeleteVertexArrays(1, &vao);
     glDeleteTextures(1, &texture);
 
     glfwTerminate();

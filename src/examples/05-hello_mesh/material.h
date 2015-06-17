@@ -1,6 +1,7 @@
 #ifndef MATERIAL_HEADER
 #define MATERIAL_HEADER
 
+#include "../common/util.h"
 #include <glm/glm.hpp>
 
 class Material
@@ -13,9 +14,13 @@ public:
 
     bool setUniform(const char* name, const glm::mat4& m);
     bool use();
+    bool bind();
     void stopUsing();
+
+    void setDiffuseTexture(GLuint texture);
 private:
     GLuint program;
+    GLuint diffuse;
 };
 
 #endif

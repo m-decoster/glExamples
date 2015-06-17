@@ -1,8 +1,9 @@
 #include "material.h"
+#include "../common/shader.h"
 #include <glm/gtc/type_ptr.hpp> 
 
 Material::Material()
-    : program(0)
+    : program(0), diffuse(0)
 {
 }
 
@@ -29,7 +30,7 @@ bool Material::load(const char* vertexSrc, const char* fragmentSrc)
     }
     // Now we must make a shader program: this program
     // contains both the vertex and the fragment shader
-    GLuint program = createShaderProgram(vertex, fragment);
+    program = createShaderProgram(vertex, fragment);
     if(!program)
     {
         glDeleteShader(vertex);
@@ -70,6 +71,7 @@ bool Material::setUniform(const char* name, const glm::mat4& m)
 {
     if(!program)
     {
+        std::cerr << "Program not set while trying to set uniform" << std::endl;
         return false;
     }
 
@@ -77,6 +79,7 @@ bool Material::setUniform(const char* name, const glm::mat4& m)
 
     if(loc == -1)
     {
+        std::cerr << "Uniform '" << name << "' not found in shader" << std::endl;
         return false;
     }
 
@@ -84,14 +87,34 @@ bool Material::setUniform(const char* name, const glm::mat4& m)
     return true;
 }
 
+void Material::setDiffuseTexture(GLuint texture)
+{
+    diffuse = texture;
+}
+
 bool Material::use()
 {
     if(!program)
     {
+        std::cerr << "Tried to use material without program" << std::endl;
+    }
+
+    glUseProgram(program);
+    return true;
+}
+
+bool Material::bind()
+{
+    if(!program || !diffuse)
+    {
+        std::cerr << "Set program and textures before binding a material!" << std::endl;
         return false;
     }
-    
+
     glUseProgram(program);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, diffuse);
+    glUniform1i(glGetUniformLocation(program, "diffuse"), 0);
     return true;
 }
 

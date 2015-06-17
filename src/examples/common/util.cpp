@@ -32,8 +32,6 @@ GLFWwindow* init(const char* exampleName, int width, int height)
 
     std::cout << "Using OpenGL version " << glGetString(GL_VERSION) << std::endl;
 
-    glEnable(GL_TEXTURE_2D);
-
     return window;
 }
 
