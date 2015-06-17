@@ -32,3 +32,5 @@
 # Assets may be copied from source to bin when compiling
 # We don't want to store these twice in the repository
 bin/*.png
+bin/*.bmp
+bin/*.obj
