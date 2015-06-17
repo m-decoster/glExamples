@@ -9,7 +9,11 @@
 #include <cstdlib>
 #include <iostream>
 
+class Camera;
+
 GLFWwindow* init(const char* exampleName, int width, int height);
 GLuint loadImage(const char* fileName, int* w, int* h, int index);
+void setCamera(Camera* camera);
+void updateCamera(int width, int height, GLFWwindow* window);
 
 #endif

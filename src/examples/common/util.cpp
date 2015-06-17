@@ -1,4 +1,10 @@
 #include "util.h"
+#include "camera.h"
+
+static const float SPEED = 50.0f;
+static const float MOUSE_SPEED = 0.025f;
+
+static Camera* camera;
 
 static void error_callback(int error, const char* description)
 {
@@ -56,4 +62,49 @@ GLuint loadImage(const char* fileName, int* w, int* h, int index)
     SOIL_free_image_data(img);
 
     return tex;
+}
+
+void setCamera(Camera* cam)
+{
+    camera = cam;
+}
+
+void updateCamera(int width, int height, GLFWwindow* window)
+{
+    float deltaTime = (float)glfwGetTime();
+    glfwSetTime(0.0);
+
+    // Get mouse position
+    double xpos, ypos;
+    glfwGetCursorPos(window, &xpos, &ypos);
+    glfwSetCursorPos(window, width / 2, height / 2);
+    float horizontalAngle = camera->getHorizontalAngle();
+    float verticalAngle = camera->getVerticalAngle();
+    horizontalAngle += MOUSE_SPEED * deltaTime * (float)(width / 2 - xpos);
+    verticalAngle   += MOUSE_SPEED * deltaTime * (float)(height / 2 - ypos);
+
+    camera->setHorizontalAngle(horizontalAngle);
+    camera->setVerticalAngle(verticalAngle);
+
+    // Get key input
+    glm::vec3 direction = camera->getDirectionVector();
+    glm::vec3 position = camera->getPosition();
+    glm::vec3 right = camera->getRightVector();
+    if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+    {
+        position += direction * deltaTime * SPEED;
+    }
+    if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+    {
+        position -= direction * deltaTime * SPEED;
+    }
+    if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+    {
+        position -= right * deltaTime * SPEED;
+    }
+    else if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+    {
+        position += right * deltaTime * SPEED;
+    }
+    camera->setPosition(position.x, position.y, position.z);
 }

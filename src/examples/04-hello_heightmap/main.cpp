@@ -10,9 +10,7 @@
 
 static glm::mat4 model;
 
-static const float SPEED = 50.0f; // Camera transform speed
 static const int SIZE = 10.0f; // Size of a single tile in the heightmap
-static const float MOUSE_SPEED = 0.025f;
 
 const char* VERTEX_SRC = "#version 330 core\n"
                           "layout(location=0) in vec3 position;"          // Vertex position (x, y, z)
@@ -67,6 +65,7 @@ int main(void)
     // Set the camera
     Camera camera(CAMERA_PERSPECTIVE, 45.0f, 0.1f, 1000.0f, 640.0f, 480.0f);
     camera.setPosition(0.0f, 0.0f, -3.0f);
+    setCamera(&camera); // The camera updating is handled in ../common/util.cpp
 
     // Load the heightmap
     HeightMap map(20.0f);
@@ -184,41 +183,7 @@ int main(void)
             break;
         }
 
-        float deltaTime = (float)glfwGetTime();
-        glfwSetTime(0.0);
-
-        // Get mouse position
-        double xpos, ypos;
-        glfwGetCursorPos(window, &xpos, &ypos);
-        glfwSetCursorPos(window, 320, 240);
-        float horizontalAngle = camera.getHorizontalAngle();
-        float verticalAngle = camera.getVerticalAngle();
-        horizontalAngle += MOUSE_SPEED * deltaTime * (float)(320 - xpos);
-        verticalAngle   += MOUSE_SPEED * deltaTime * (float)(240 - ypos);
-        camera.setHorizontalAngle(horizontalAngle);
-        camera.setVerticalAngle(verticalAngle);
-
-        // Get key input
-        glm::vec3 direction = camera.getDirectionVector();
-        glm::vec3 position = camera.getPosition();
-        glm::vec3 right = camera.getRightVector();
-        if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        {
-            position += direction * deltaTime * SPEED;
-        }
-        if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        {
-            position -= direction * deltaTime * SPEED;
-        }
-        if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-        {
-            position -= right * deltaTime * SPEED;
-        }
-        else if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-        {
-            position += right * deltaTime * SPEED;
-        }
-        camera.setPosition(position.x, position.y, position.z);
+        updateCamera(640, 480, window);
 
         // Clear (note the addition of GL_DEPTH_BUFFER_BIT)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
