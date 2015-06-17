@@ -60,12 +60,15 @@ Licenses of third party libraries are available in the [3rd\_party](3rd_party) f
 
 To compile all examples, you can run `make` or `make all`.
 
-1. [Hello Triangle](#hello-triangle)
-2. [Hello Sprite](#hello-sprite)
-3. [Hello Cube](#hello-cube)
-4. [Hello Heightmap](#hello-heightmap)
+1. Beginner
+    1. [Hello Triangle](#hello-triangle)
+    2. [Hello Sprite](#hello-sprite)
+    3. [Hello Cube](#hello-cube)
+    4. [Hello Heightmap](#hello-heightmap)
 
 ### Hello Triangle
+
+*Level: beginner*
 
 **Compile**: `make hello_triangle`  
 **Run**: `cd bin; ./01-hello-triangle.out`
@@ -77,6 +80,8 @@ This example shows the minimal code needed to render a simple colored triangle.
 ![hello triangle](img/01-hello_triangle.tiff)
 
 ### Hello Sprite
+
+*Level: beginner*
 
 **Compile**: `make hello_sprite`  
 **Run**: `cd bin; ./02-hello_sprite.out`
@@ -90,6 +95,8 @@ This example shows the minimal code needed to render a textured quad. It also us
 
 ### Hello Cube
 
+*Level: beginner*
+
 **Compile**: `make hello_cube`  
 **Run**: `cd bin; ./03-hello_cube.out`
 
@@ -101,6 +108,8 @@ uses depth testing to make sure the cube is rendered correctly.
 ![hello cube](img/03-hello_cube.tiff)
 
 ### Hello Heightmap
+
+*Level: beginner*
 
 **Compile**: `make hello_heightmap`  
 **Run**: `cd bin; ./04-hello_heightmap.out`
@@ -116,6 +125,8 @@ Finally, we also introduce backface culling.
 ![hello heightmap](img/04-hello_heightmap.tiff)
 
 ### Hello Mesh
+
+*Level: beginner*
 
 **Compile**: `make hello_mesh`  
 **Run**: `cd bin; ./05-hello_mesh.out`
