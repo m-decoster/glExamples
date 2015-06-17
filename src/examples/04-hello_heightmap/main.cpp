@@ -1,5 +1,6 @@
 #include "../common/util.h"
 #include "../common/shader.h"
+#include "../common/camera.h"
 #include "heightmap.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -7,15 +8,11 @@
 #include <vector>
 #include <cmath>
 
-static glm::mat4 model, view, proj;
+static glm::mat4 model;
 
 static const float SPEED = 50.0f; // Camera transform speed
 static const int SIZE = 10.0f; // Size of a single tile in the heightmap
 static const float MOUSE_SPEED = 0.025f;
-
-static glm::vec3 cameraPosition;
-static float horizontalAngle = 0.0f;
-static float verticalAngle = 0.0f;
 
 const char* VERTEX_SRC = "#version 330 core\n"
                           "layout(location=0) in vec3 position;"          // Vertex position (x, y, z)
@@ -62,16 +59,14 @@ int main(void)
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW); // front facing vertices are defined counter clock wise
 
-    // Create a perspective projection matrix
-    proj = glm::perspective(glm::radians(45.0f), (float)640/(float)480, 0.1f, 1000.0f);
-    // vertex_clip = M_projection . M_view . M_model . vertex_local
     // Create the model matrix
     model = glm::mat4();
     // Rotate just a bit (the vector indicates the axes on which to rotate)
     model = glm::rotate(model, -glm::radians(35.0f), glm::vec3(0.0f, 1.0f, 1.0f));
-    // Create the view matrix
-    view = glm::mat4();
-    cameraPosition = glm::vec3(0.0f, 0.0f, -3.0f);
+
+    // Set the camera
+    Camera camera(CAMERA_PERSPECTIVE, 45.0f, 0.1f, 1000.0f, 640.0f, 480.0f);
+    camera.setPosition(0.0f, 0.0f, -3.0f);
 
     // Load the heightmap
     HeightMap map(20.0f);
@@ -196,40 +191,34 @@ int main(void)
         double xpos, ypos;
         glfwGetCursorPos(window, &xpos, &ypos);
         glfwSetCursorPos(window, 320, 240);
-        horizontalAngle += MOUSE_SPEED * deltaTime * float(320 - xpos);
-        verticalAngle   += MOUSE_SPEED * deltaTime * float(240 - ypos);
-        // Face direction
-        glm::vec3 direction(
-                cos(verticalAngle) * sin(horizontalAngle),
-                sin(verticalAngle),
-                cos(verticalAngle) * cos(horizontalAngle)
-                );
-        // Right vector (because up can change, but right cannot)
-        glm::vec3 right = glm::vec3(
-                sin(horizontalAngle - 3.14f/2.0f),
-                0,
-                cos(horizontalAngle - 3.14f/2.0f)
-                );
-        glm::vec3 up = glm::cross(right, direction);
+        float horizontalAngle = camera.getHorizontalAngle();
+        float verticalAngle = camera.getVerticalAngle();
+        horizontalAngle += MOUSE_SPEED * deltaTime * (float)(320 - xpos);
+        verticalAngle   += MOUSE_SPEED * deltaTime * (float)(240 - ypos);
+        camera.setHorizontalAngle(horizontalAngle);
+        camera.setVerticalAngle(verticalAngle);
 
         // Get key input
+        glm::vec3 direction = camera.getDirectionVector();
+        glm::vec3 position = camera.getPosition();
+        glm::vec3 right = camera.getRightVector();
         if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
         {
-            cameraPosition += direction * deltaTime * SPEED;
+            position += direction * deltaTime * SPEED;
         }
         if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
         {
-            cameraPosition -= direction * deltaTime * SPEED;
+            position -= direction * deltaTime * SPEED;
         }
         if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
         {
-            cameraPosition -= right * deltaTime * SPEED;
+            position -= right * deltaTime * SPEED;
         }
         else if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
         {
-            cameraPosition += right * deltaTime * SPEED;
+            position += right * deltaTime * SPEED;
         }
-        view = glm::lookAt(cameraPosition, cameraPosition + direction, up);
+        camera.setPosition(position.x, position.y, position.z);
 
         // Clear (note the addition of GL_DEPTH_BUFFER_BIT)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -238,10 +227,10 @@ int main(void)
         GLint modelUL = glGetUniformLocation(program, "model");
         glUniformMatrix4fv(modelUL, 1, GL_FALSE, glm::value_ptr(model));
         GLint viewUL = glGetUniformLocation(program, "view");
-        glUniformMatrix4fv(viewUL, 1, GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(viewUL, 1, GL_FALSE, glm::value_ptr(camera.getView()));
         // This can be moved out of the loop because it rarely changes
         GLint projUL = glGetUniformLocation(program, "projection");
-        glUniformMatrix4fv(projUL, 1, GL_FALSE, glm::value_ptr(proj));
+        glUniformMatrix4fv(projUL, 1, GL_FALSE, glm::value_ptr(camera.getProjection()));
 
         // The VAO is still bound so just draw the vertices
         glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);

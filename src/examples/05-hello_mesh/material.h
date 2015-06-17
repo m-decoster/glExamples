@@ -12,8 +12,18 @@ public:
 
     bool load(const char* vertexSrc, const char* fragmentSrc);
 
+    /**
+     * Set a uniform to a certain value
+     */
     bool setUniform(const char* name, const glm::mat4& m);
+    /**
+     * Use the underlying shader program
+     */
     bool use();
+    /**
+     * Use the underlying shader program and bind
+     * the textures
+     */
     bool bind();
     void stopUsing();
 
