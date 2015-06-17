@@ -113,4 +113,15 @@ Finally, we also introduce backface culling.
 
 [Code](src/examples/04-hello_heightmap)
 
-![hello cube](img/04-hello_heightmap.tiff)
+![hello heightmap](img/04-hello_heightmap.tiff)
+
+### Hello Mesh
+
+**Compile**: `make hello_mesh`  
+**Run**: `cd bin; ./05-hello_mesh.out`
+
+This example uses Assimp to load a mesh. We load the material ourselves instead of using Assimp.
+
+[Code](src/examples/05-hello_mesh)
+
+![hello mesh](img/05-hello_mesh.tiff)

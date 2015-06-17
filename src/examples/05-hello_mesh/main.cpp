@@ -87,10 +87,17 @@ int main(void)
     // Set the clear color to a light grey
     glClearColor(0.75f, 0.75f, 0.75f, 1.0f);
 
+    float angle = 0.0f;
+
     while(!glfwWindowShouldClose(window))
     {
         // Clear (note the addition of GL_DEPTH_BUFFER_BIT)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // Rotate the mesh over time so we see the 3D effect better
+        angle += glfwGetTime() * 2.0f;
+        mesh.setAngle(angle, angle / 2.0f, 0.0f);
+        glfwSetTime(0.0);
 
         const glm::mat4& model = mesh.getModelMatrix();
 

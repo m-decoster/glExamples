@@ -20,6 +20,7 @@ public:
 
     glm::mat4 getModelMatrix();
 private:
+    int numIndices;
     glm::vec3 position, scale, angle;
     GLuint vao;
 };

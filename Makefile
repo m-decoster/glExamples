@@ -1,7 +1,7 @@
 CC=g++
 CFLAGS=-Wall
 INCLUDES=-Isrc/libs/
-LIBS=-Llib -lglfw3 -lSOIL -lassimp -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo
+LIBS=-Llib -lglfw3 -lSOIL -lassimp -lz -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo
 COMMON=src/examples/common/util.cpp src/examples/common/shader.cpp
 
 all: hello_triangle hello_sprite hello_cube hello_heightmap hello_mesh
