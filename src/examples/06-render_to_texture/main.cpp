@@ -46,27 +46,13 @@ const char* VERTEX_FB_SRC = "#version 330 core\n"
 const char* FRAGMENT_FB_SRC = "#version 330 core\n"
                               "in vec2 fTexCoords;"
                               "out vec4 outputColor;"
-                              "uniform sampler2D fbTexture;"
+                              "uniform sampler2D diffuse;"
                               "void main()"
                               "{"
-                              "    outputColor = texture(fbTexture, fTexCoords);" // Google 'grayscale coefficients' if you don't understand the next line
+                              "    outputColor = texture(diffuse, fTexCoords);" // Google 'grayscale coefficients' if you don't understand the next line
                               "    float avg = 0.2126 * outputColor.r + 0.7152 * outputColor.g + 0.0722 * outputColor.b;"
                               "    outputColor = vec4(avg, avg, avg, 1.0);" // grayscale
                               "}";
-
-GLuint createFramebufferShader()
-{
-    GLuint vertex = createShader(VERTEX_FB_SRC, GL_VERTEX_SHADER);
-    GLuint fragment = createShader(FRAGMENT_FB_SRC, GL_FRAGMENT_SHADER);
-    GLuint program = createShaderProgram(vertex, fragment);
-    linkShader(program);
-    validateShader(program);
-    glDetachShader(program, vertex);
-    glDeleteShader(vertex);
-    glDetachShader(program, fragment);
-    glDeleteShader(fragment);
-    return program;
-}
 
 int main(void)
 {
@@ -110,8 +96,6 @@ int main(void)
         return -1;
     }
 
-    GLuint fbProgram = createFramebufferShader();
-
     // Create a VAO for rendering the framebuffer
     GLuint vao;
     glGenVertexArrays(1, &vao);
@@ -143,6 +127,14 @@ int main(void)
     glm::mat4 view;
     // Move the scene so that we can see the mesh
     view = glm::translate(view, glm::vec3(-2.0f, -1.5f, -8.0f));
+
+    // Create a framebuffer material
+    Material fbMat;
+    if(!fbMat.load(VERTEX_FB_SRC, FRAGMENT_FB_SRC))
+    {
+        std::cerr << "Could not load framebuffer shaders" << std::endl;
+        return -1;
+    }
 
     // In this example, the shader and vertex array object are set up in another class
     // see mesh.h & material.h
@@ -199,9 +191,9 @@ int main(void)
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glClear(GL_COLOR_BUFFER_BIT);
         glDisable(GL_DEPTH_TEST);
-        glUseProgram(fbProgram);
         glBindVertexArray(vao);
-        glBindTexture(GL_TEXTURE_2D, fbTexture);
+        fbMat.setDiffuseTexture(fbTexture);
+        fbMat.bind();
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glBindVertexArray(0);
 
