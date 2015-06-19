@@ -66,6 +66,8 @@ To compile all examples, you can run `make` or `make all`.
     3. [Hello Cube](#hello-cube)
     4. [Hello Heightmap](#hello-heightmap)
     5. [Hello Mesh](#hello-mesh)
+2. Intermediate
+    1. [Render To Texture](#render-to-texture)
 
 ### Hello Triangle
 
@@ -139,3 +141,17 @@ a `Mesh` class. We will be making changes to these classes in later examples if 
 [Code](src/examples/05-hello_mesh)
 
 ![hello mesh](img/05-hello_mesh.tiff)
+
+### Render To Texture
+
+*Level: intermediate*
+
+**Compile**: `make render_to_texture`  
+**Run**: `cd bin; ./06-render_to_texture.out`
+
+We reuse the code from the [Hello Mesh](#hello-mesh) example, but this time we render to an
+off-screen texture, and then render that texture in grayscale to the screen.
+
+[Code](src/examples/06-render_to_texture)
+
+![hello mesh](img/06-render_to_texture.tiff)
