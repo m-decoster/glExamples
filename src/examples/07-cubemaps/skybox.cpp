@@ -10,8 +10,9 @@ static const char* VERTEX_SRC = "#version 330 core\n"
                                 "void main()"
                                 "{"
                                 "    gl_Position = projection * view * vec4(position, 1.0);"
-                                "    gl_Position.z = 1.0;"
-                                "fTexcoords = position;"
+                                "    gl_Position.z = 1.0;" // This allows us to render the skybox AFTER rendering everything else,
+                                // which is a great optimization because OpenGL will have to evaluate less fragments
+                                "fTexcoords = position;" // Because we're working with a cubemap, the tex coordinates are the same as the position
                                 "}";
 
 static const char* FRAGMENT_SRC = "#version 330 core\n"
@@ -108,7 +109,7 @@ Skybox::~Skybox()
 
 void Skybox::render(const glm::mat4& view, const glm::mat4& proj)
 {
-    glDepthFunc(GL_LEQUAL); // z = 1.0 in skybox
+    glDepthFunc(GL_LEQUAL); // z = 1.0 in skybox, the default GL_LESS would discard the skybox
     glUseProgram(program);
     glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(glGetUniformLocation(program, "projection"), 1, GL_FALSE, glm::value_ptr(proj));
@@ -117,7 +118,7 @@ void Skybox::render(const glm::mat4& view, const glm::mat4& proj)
     glBindVertexArray(vao);
     glActiveTexture(GL_TEXTURE0);
     glUniform1i(glGetUniformLocation(program, "skybox"), 0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap); // GL_TEXTURE_CUBE_MAP instead of 2D!
     glDrawArrays(GL_TRIANGLES, 0, 36);
     glBindVertexArray(0);
 
