@@ -14,7 +14,7 @@ class Camera;
 GLFWwindow* init(const char* exampleName, int width, int height);
 GLuint loadImage(const char* fileName, int* w, int* h, int index);
 GLuint loadCubeMap(const char* posX, const char* negX, const char* posY,
-        const char* negY, const char* posZ, const char negZ);
+        const char* negY, const char* posZ, const char* negZ);
 void setCamera(Camera* camera);
 void updateCamera(int width, int height, GLFWwindow* window);
 

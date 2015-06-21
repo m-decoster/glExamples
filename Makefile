@@ -4,7 +4,7 @@ INCLUDES=-Isrc/libs/
 LIBS=-Llib -lglfw3 -lSOIL -lassimp -lz -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo
 COMMON=src/examples/common/util.cpp src/examples/common/shader.cpp src/examples/common/camera.cpp
 
-all: hello_triangle hello_sprite hello_cube hello_heightmap hello_mesh render_to_texture
+all: hello_triangle hello_sprite hello_cube hello_heightmap hello_mesh render_to_texture cubemaps
 
 hello_triangle:
 	$(CC) $(INCLUDES) $(CFLAGS) src/examples/01-hello_triangle/main.cpp $(COMMON) -o bin/01-hello_triangle.out $(LIBS)
@@ -30,6 +30,10 @@ render_to_texture:
 	$(CC) $(INCLUDES) $(CFLAGS) src/examples/06-render_to_texture/main.cpp src/examples/06-render_to_texture/mesh.cpp src/examples/06-render_to_texture/material.cpp $(COMMON) -o bin/06-render_to_texture.out $(LIBS)
 	cp src/examples/06-render_to_texture/image.png bin/image.png
 	cp src/examples/06-render_to_texture/test_mesh.obj bin/test_mesh.obj
+
+cubemaps:
+	$(CC) $(INCLUDES) $(CFLAGS) src/examples/07-cubemaps/main.cpp src/examples/07-cubemaps/skybox.cpp $(COMMON) -o bin/07-cubemaps.out $(LIBS)
+	cp src/examples/07-cubemaps/*.png bin/
 
 clean:
 	rm bin/*
