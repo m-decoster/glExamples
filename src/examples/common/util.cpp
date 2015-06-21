@@ -64,6 +64,13 @@ GLuint loadImage(const char* fileName, int* w, int* h, int index)
     return tex;
 }
 
+GLuint loadCubeMap(const char* posX, const char* negX, const char* posY,
+        const char* negY, const char* posZ, const char negZ)
+{
+    return SOIL_load_OGL_cubemap(posX, negX, posY, negY, posZ, negZ,
+            SOIL_LOAD_RGB, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+}
+
 void setCamera(Camera* cam)
 {
     camera = cam;
