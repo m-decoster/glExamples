@@ -12,7 +12,7 @@ static const char* VERTEX_SRC = "#version 330 core\n"
                                 "    gl_Position = projection * view * vec4(position, 1.0);"
                                 "    gl_Position.z = 1.0;" // This allows us to render the skybox AFTER rendering everything else,
                                 // which is a great optimization because OpenGL will have to evaluate less fragments
-                                "fTexcoords = position;" // Because we're working with a cubemap, the tex coordinates are the same as the position
+                                "    fTexcoords = position;" // Because we're working with a cubemap, the tex coordinates are the same as the position
                                 "}";
 
 static const char* FRAGMENT_SRC = "#version 330 core\n"
@@ -71,16 +71,16 @@ Skybox::Skybox(GLuint cm)
         1.0f, -1.0f, 1.0f
     };
 
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
     GLuint vbo;
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW);
 
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
     glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), NULL);
 
     glBindVertexArray(0);
 
@@ -109,16 +109,19 @@ Skybox::~Skybox()
 
 void Skybox::render(const glm::mat4& view, const glm::mat4& proj)
 {
+    glm::mat4 viewNew = glm::mat4(glm::mat3(view)); // Remove translation components
+
     glDepthFunc(GL_LEQUAL); // z = 1.0 in skybox, the default GL_LESS would discard the skybox
+
     glUseProgram(program);
-    glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+    glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_FALSE, glm::value_ptr(viewNew));
     glUniformMatrix4fv(glGetUniformLocation(program, "projection"), 1, GL_FALSE, glm::value_ptr(proj));
 
     // Standard cube rendering
     glBindVertexArray(vao);
     glActiveTexture(GL_TEXTURE0);
-    glUniform1i(glGetUniformLocation(program, "skybox"), 0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap); // GL_TEXTURE_CUBE_MAP instead of 2D!
+    glUniform1i(glGetUniformLocation(program, "skybox"), 0);
     glDrawArrays(GL_TRIANGLES, 0, 36);
     glBindVertexArray(0);
 

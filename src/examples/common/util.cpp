@@ -67,8 +67,44 @@ GLuint loadImage(const char* fileName, int* w, int* h, int index)
 GLuint loadCubeMap(const char* posX, const char* negX, const char* posY,
         const char* negY, const char* posZ, const char* negZ)
 {
-    return SOIL_load_OGL_cubemap(posX, negX, posY, negY, posZ, negZ,
-            SOIL_LOAD_RGB, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+    static const GLenum textureTypes[] =
+    {
+        GL_TEXTURE_CUBE_MAP_POSITIVE_X,
+        GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
+        GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
+        GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
+        GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
+        GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
+    };
+    const char* names[] =
+    {
+        posX,
+        negX,
+        posY,
+        negY,
+        posZ,
+        negZ
+    };
+
+    GLuint tex;
+    glGenTextures(1, &tex);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, tex);
+
+    for(int i = 0; i < 6; ++i)
+    {
+        int w, h;
+        unsigned char* img = SOIL_load_image(names[i], &w, &h, NULL, SOIL_LOAD_RGBA);
+        if(!img)
+        {
+            std::cerr << "Could not load image " << names[i] << " for cubemap: " << SOIL_last_result() << std::endl;
+            glDeleteTextures(1, &tex);
+            return 0;
+        }
+        glTexImage2D(textureTypes[i], 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, img);
+        SOIL_free_image_data(img);
+    }
+    return tex;
 }
 
 void setCamera(Camera* cam)
