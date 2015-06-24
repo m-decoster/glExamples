@@ -10,7 +10,7 @@ static const char* VERTEX_SRC = "#version 330 core\n"
                                 "void main()"
                                 "{"
                                 "    gl_Position = projection * view * vec4(position, 1.0);"
-                                "    gl_Position.z = 1.0;" // This allows us to render the skybox AFTER rendering everything else,
+                                "    gl_Position = gl_Position.xyww;" // This allows us to render the skybox AFTER rendering everything else,
                                 // which is a great optimization because OpenGL will have to evaluate less fragments
                                 "    fTexcoords = position;" // Because we're working with a cubemap, the tex coordinates are the same as the position
                                 "}";

@@ -36,6 +36,10 @@ int main(void)
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // Rotate the view to show the 3D skybox effect
+        view = glm::rotate(view, glm::radians(15.0f) * (float)glfwGetTime(), glm::vec3(0.0f, 1.0f, 0.0f));
+        glfwSetTime(0.0);
+
         skybox.render(view, proj);
 
         glfwSwapBuffers(window);
