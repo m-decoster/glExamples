@@ -68,6 +68,7 @@ To compile all examples, you can run `make` or `make all`.
     5. [Hello Mesh](#hello-mesh)
 2. Intermediate
     1. [Render To Texture](#render-to-texture)
+    2. [Cubemaps](#cubemaps)
 
 ### Hello Triangle
 
@@ -155,3 +156,17 @@ off-screen texture, and then render that texture in grayscale to the screen.
 [Code](src/examples/06-render_to_texture)
 
 ![hello mesh](img/06-render_to_texture.tiff)
+
+### Cubemaps
+
+*Level: intermediate*
+
+**Compile**: `make cubemaps`  
+**Run**: `cd bin; ./07-cubemaps.out`
+
+This example shows how to create a skybox with cubemaps. It demonstrates loading 6 textures
+into a cubemap, and it demonstrates how to draw the skybox behind everything else.
+
+[Code](src/examples/07-cubemaps)
+
+![hello mesh](img/07-cubemaps.tiff)
