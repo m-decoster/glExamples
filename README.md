@@ -29,17 +29,6 @@ These examples have some dependencies:
 * [GLM](http://glm.g-truc.net)
 * [ASSIMP](http://assimp.sf.net/)
 
-## Third party
-
-These examples use some third party software and assets. For libraries,
-see the section about Dependencies above. These are the third party assets
-that we use:
-
-* [Basis33](http://www.1001fonts.com/basis33-font.html#license) is a fixed-width font
-available under the MIT license.
-
-All of the licenses for third party software and assets are available in the 3rd\_party folder.
-
 ## Compiling
 
 ### OS X
@@ -80,6 +69,7 @@ To compile all examples, you can run `make` or `make all`.
 2. Intermediate
     1. [Render To Texture](#render-to-texture)
     2. [Cubemaps](#cubemaps)
+    3. [Instancing](#instancing)
 
 ### Hello Triangle
 
@@ -166,7 +156,7 @@ off-screen texture, and then render that texture in grayscale to the screen.
 
 [Code](src/examples/06-render_to_texture)
 
-![hello mesh](img/06-render_to_texture.tiff)
+![render to texture](img/06-render_to_texture.tiff)
 
 ### Cubemaps
 
@@ -180,4 +170,19 @@ into a cubemap, and it demonstrates how to draw the skybox behind everything els
 
 [Code](src/examples/07-cubemaps)
 
-![hello mesh](img/07-cubemaps.tiff)
+![cubemaps](img/07-cubemaps.tiff)
+
+### Instancing
+
+*Level: intermediate*
+
+**Compile**: `make instancing`  
+**Run**: `cd bin; ./08-instancing.out`
+
+This example draws a large number of objects in a single draw call using instancing.
+Model matrices are generated in the main file, but most of the actual implementation
+is in the `Mesh` class. Make sure to look at the `setInstances` and `render` methods.
+
+[Code](src/examples/08-instancing)
+
+![cubemaps](img/08-instancing.tiff)

@@ -1,5 +1,6 @@
 #include "../common/util.h"
 #include "../common/shader.h"
+#include "../common/camera.h"
 #include "material.h"
 #include "mesh.h"
 #include <glm/glm.hpp>
@@ -41,20 +42,14 @@ int main(void)
         return -1;
     }
 
-    // We will need to enable depth testing, so that OpenGL draws further
-    // vertices first
     glEnable(GL_DEPTH_TEST);
 
-    // Create a perspective projection matrix
-    glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)640/(float)480, 0.1f, 1000.0f);
-    // vertex_clip = M_projection . M_view . M_model . vertex_local
-    // Create the view matrix
-    glm::mat4 view;
-    // Move the scene so that we can see the mesh
-    view = glm::lookAt(glm::vec3(0.0f, 50.0f, 200.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    // Hide the cursor (escape will exit the application)
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-    // In this example, the shader and vertex array object are set up in another class
-    // see mesh.h & material.h
+    // Set the camera
+    Camera camera(CAMERA_PERSPECTIVE, 45.0f, 0.1f, 1000.0f, 640.0f, 480.0f);
+    setCamera(&camera);
 
     // Load the material
     Material mat;
@@ -108,19 +103,22 @@ int main(void)
 
     while(!glfwWindowShouldClose(window))
     {
+        if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        {
+            break;
+        }
+
+        updateCamera(640, 480, window);
+
         // Clear (note the addition of GL_DEPTH_BUFFER_BIT)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glfwSetTime(0.0);
-
         // Upload the MVP matrices
         mat.bind();
-        mat.setUniform("view", view);
-        mat.setUniform("projection", proj);
+        mat.setUniform("view", camera.getView());
+        mat.setUniform("projection", camera.getProjection());
 
         mesh.render();
-
-        // Tip: if nothing is drawn, check the return value of glGetError and google it
 
         // Swap buffers to show current image on screen (for more information google 'backbuffer')
         glfwSwapBuffers(window);
