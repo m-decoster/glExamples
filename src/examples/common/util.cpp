@@ -41,10 +41,10 @@ GLFWwindow* init(const char* exampleName, int width, int height)
     return window;
 }
 
-GLuint loadImage(const char* fileName, int* w, int* h, int index)
+GLuint loadImage(const char* fileName, int* w, int* h, int index, bool alphaChannel)
 {
     GLuint tex;
-    unsigned char* img = SOIL_load_image(fileName, w, h, NULL, SOIL_LOAD_RGB);
+    unsigned char* img = SOIL_load_image(fileName, w, h, NULL, alphaChannel ? SOIL_LOAD_RGBA : SOIL_LOAD_RGB);
     if(!img)
     {
         std::cerr << "Error loading image " << fileName << ": " << SOIL_last_result() << std::endl;
@@ -58,7 +58,7 @@ GLuint loadImage(const char* fileName, int* w, int* h, int index)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, *w, *h, 0, GL_RGB, GL_UNSIGNED_BYTE, img);
+    glTexImage2D(GL_TEXTURE_2D, 0, alphaChannel ? GL_RGBA : GL_RGB, *w, *h, 0, alphaChannel ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, img);
     SOIL_free_image_data(img);
 
     return tex;

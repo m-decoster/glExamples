@@ -126,7 +126,7 @@ int main(void)
 
     // Load the texture and bind it to the uniform
     int w, h;
-    GLuint texture = loadImage("image.png", &w, &h, 0); // GL_TEXTURE0
+    GLuint texture = loadImage("image.png", &w, &h, 0, false); // GL_TEXTURE0
     if(!texture)
     {
         return -1;

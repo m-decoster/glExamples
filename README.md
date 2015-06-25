@@ -29,6 +29,17 @@ These examples have some dependencies:
 * [GLM](http://glm.g-truc.net)
 * [ASSIMP](http://assimp.sf.net/)
 
+## Third party
+
+These examples use some third party software and assets. For libraries,
+see the section about Dependencies above. These are the third party assets
+that we use:
+
+* [Basis33](http://www.1001fonts.com/basis33-font.html#license) is a fixed-width font
+available under the MIT license.
+
+All of the licenses for third party software and assets are available in the 3rd\_party folder.
+
 ## Compiling
 
 ### OS X

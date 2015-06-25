@@ -1,0 +1,3 @@
+I have used the basis33 font to create a bitmap font for the instancing
+example. This bitmap font is distributed in the folder of that example.
+The original file is in this folder: basis33.ttf.

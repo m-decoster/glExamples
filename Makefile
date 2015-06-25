@@ -35,5 +35,9 @@ cubemaps:
 	$(CC) $(INCLUDES) $(CFLAGS) src/examples/07-cubemaps/main.cpp src/examples/07-cubemaps/skybox.cpp $(COMMON) -o bin/07-cubemaps.out $(LIBS)
 	cp src/examples/07-cubemaps/*.png bin/
 
+instancing:
+	$(CC) $(INCLUDES) $(CFLAGS) src/examples/08-instancing/main.cpp src/examples/08-instancing/text.cpp src/examples/08-instancing/font.cpp $(COMMON) -o bin/08-instancing.out $(LIBS)
+	cp src/examples/08-instancing/font.png bin/font.png
+
 clean:
 	rm bin/*

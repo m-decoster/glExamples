@@ -69,7 +69,7 @@ int main(void)
     }
     mat.use();
     int w, h;
-    GLuint texture = loadImage("image.png", &w, &h, 0);
+    GLuint texture = loadImage("image.png", &w, &h, 0, false);
     if(!texture)
     {
         std::cerr << "Could not load texture" << std::endl;
