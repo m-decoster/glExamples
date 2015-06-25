@@ -14,7 +14,7 @@ const char* VERTEX_SRC = "#version 330 core\n"
                          "{"
                          "    fTexcoord = texCoords[gl_InstanceID * gl_VertexID];"
                          "    float newX = position.x + gl_InstanceID * glyphWidth;"
-                         "    gl_Position = vec4(position, 0.0, 1.0);"
+                         "    gl_Position = vec4(newX, position.y, 0.0, 1.0);"
                          "}";
 
 const char* FRAGMENT_SRC = "#version 330 core\n"
@@ -128,22 +128,23 @@ void Text::render()
     // that was distributed with the font.
     // For this example, I have made sure that the indices for the characters
     // match the ASCII index
-    for(int i = 0; i < string.length(); i += 12)
+    int vertIndex = -1;
+    for(int i = 0; i < string.length(); ++i)
     {
-        char index = string.at(i) - 'A';
+        int index = string.at(i) - 'A';
         float relativeWidth = font->getGlyphWidth() / (float)font->getTotalWidth();
         // bottom left
-        setTexCoord(i, (float)index * relativeWidth, 1.0f, program);
+        setTexCoord(++vertIndex, (float)index * relativeWidth, 1.0f, program);
         // bottom right
-        setTexCoord(i + 1, (float)index * relativeWidth + relativeWidth, 1.0f, program);
+        setTexCoord(++vertIndex, (float)index * relativeWidth + relativeWidth, 1.0f, program);
         // top right
-        setTexCoord(i + 2, (float)index * relativeWidth + relativeWidth, 0.0f, program);
+        setTexCoord(++vertIndex, (float)index * relativeWidth + relativeWidth, 0.0f, program);
         // top right
-        setTexCoord(i + 3, (float)index * relativeWidth + relativeWidth, 0.0f, program);
+        setTexCoord(++vertIndex, (float)index * relativeWidth + relativeWidth, 0.0f, program);
         // top left
-        setTexCoord(i + 4, (float)index * relativeWidth, 0.0f, program);
+        setTexCoord(++vertIndex, (float)index * relativeWidth, 0.0f, program);
         // bottom left
-        setTexCoord(i + 5, (float)index * relativeWidth, 1.0f, program);
+        setTexCoord(++vertIndex, (float)index * relativeWidth, 1.0f, program);
     }
 
     font->bind();
