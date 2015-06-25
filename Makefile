@@ -36,9 +36,9 @@ cubemaps:
 	cp src/examples/07-cubemaps/*.png bin/
 
 instancing:
-	$(CC) $(INCLUDES) $(CFLAGS) src/examples/08-instancing/main.cpp src/examples/08-instancing/mesh.cpp src/examples/08-instancing/material.cpp $(COMMON) -o bin/08-instancing.out $(LIBS)
+	$(CC) $(INCLUDES) $(CFLAGS) src/examples/08-instancing/main.cpp src/examples/08-instancing/mesh.cpp src/examples/08-instancing/material.cpp src/examples/08-instancing/skybox.cpp $(COMMON) -o bin/08-instancing.out $(LIBS)
 	cp src/examples/08-instancing/asteroid.obj bin/asteroid.obj
-	cp src/examples/08-instancing/asteroid.png bin/asteroid.png
+	cp src/examples/08-instancing/*.png bin/
 
 clean:
 	rm bin/*

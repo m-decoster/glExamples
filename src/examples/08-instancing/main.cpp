@@ -3,6 +3,7 @@
 #include "../common/camera.h"
 #include "material.h"
 #include "mesh.h"
+#include "skybox.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -97,6 +98,16 @@ int main(void)
     }
 
     mesh.setInstances(NUM_ASTEROIDS, models);
+
+    // Load a skybox
+    GLuint cubemap = loadCubeMap("cm_xp.png", "cm_xn.png", "cm_yp.png", "cm_yn.png", "cm_zp.png", "cm_zn.png");
+
+    if(!cubemap)
+    {
+        std::cerr << "Could not load cubemap" << std::endl;
+        return -1;
+    }
+    Skybox skybox(cubemap);
     
     // Set the clear color to a light grey
     glClearColor(0.75f, 0.75f, 0.75f, 1.0f);
@@ -119,6 +130,8 @@ int main(void)
         mat.setUniform("projection", camera.getProjection());
 
         mesh.render();
+
+        skybox.render(camera.getView(), camera.getProjection());
 
         // Swap buffers to show current image on screen (for more information google 'backbuffer')
         glfwSwapBuffers(window);
