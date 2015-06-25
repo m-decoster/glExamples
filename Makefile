@@ -40,5 +40,8 @@ instancing:
 	cp src/examples/08-instancing/asteroid.obj bin/asteroid.obj
 	cp src/examples/08-instancing/*.png bin/
 
+particles:
+	$(CC) $(INCLUDES) $(CFLAGS) src/examples/09-particles/main.cpp src/examples/09-particles/particle.cpp $(COMMON) -o bin/09-particles.out $(LIBS)
+
 clean:
 	rm bin/*
