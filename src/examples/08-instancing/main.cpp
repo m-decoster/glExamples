@@ -28,6 +28,12 @@ int main(void)
         return -1;
     }
 
+    // Enable transparency for font rendering!
+    // If you render transparent objects, you should always think
+    // about the drawing order
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
     Font font;
     if(!font.load("font.png", 26))
     {
