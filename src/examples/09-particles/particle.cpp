@@ -17,7 +17,7 @@ const char* FRAGMENT_SRC = "#version 330 core\n"
                            "}";
 
 ParticleEmitter::ParticleEmitter(int max, float ivl, const glm::vec2& pos, float pLife)
-    : vao(0), program(0), interval(ivl), lastEmission(0.0f), particleLife(pLife), position(pos), emitting(false)
+    : vao(0), program(0), lastIndex(0), interval(ivl), lastEmission(0.0f), particleLife(pLife), position(pos), emitting(false)
 {
     particles.resize(max);
     particleBuffer.resize(max * 3); // x, y, size (layout(location=1) in vec3 transform)
@@ -115,7 +115,7 @@ void ParticleEmitter::update(float deltaTime)
     {
         particles.at(i).life -= deltaTime;
         // Gravity
-        particles.at(i).speed += glm::vec2(0.0f, -9.81f) * deltaTime;
+        particles.at(i).speed += glm::vec2(0.0f, -0.00981f) * deltaTime;
         particles.at(i).position += particles.at(i).speed * deltaTime;
     }
 }
@@ -141,7 +141,7 @@ void ParticleEmitter::render()
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, transformBuffer);
-    // Remap storage (optimization. Google "buffer orphaning opengl" for more information
+    // Remap storage (optimization. Google "buffer orphaning opengl" for more information)
     glBufferData(GL_ARRAY_BUFFER, particles.size() * 3 * sizeof(float), NULL, GL_STREAM_DRAW);
     // Update the position data. Note that we only pass liveCount * 3 * sizeof(float)
     // elements to the buffer. The first liveCount * 3 * sizeof(float) are the only live
