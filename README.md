@@ -166,7 +166,7 @@ off-screen texture, and then render that texture in grayscale to the screen.
 **Compile**: `make cubemaps`  
 **Run**: `cd bin; ./07-cubemaps.out`
 
-This example shows how to create a skybox with cubemaps. It demonstrates loading 6 textures
+This example shows how to create a skybox with cubemaps. It demonstrates loading 6 images
 into a cubemap, and it demonstrates how to draw the skybox behind everything else.
 
 [Code](src/examples/07-cubemaps)
