@@ -185,4 +185,20 @@ is in the `Mesh` class. Make sure to look at the `setInstances` and `render` met
 
 [Code](src/examples/08-instancing)
 
-![cubemaps](img/08-instancing.tiff)
+![instancing](img/08-instancing.tiff)
+
+### Particles
+
+*Level: intermediate*
+
+**Compile**: `make particles`  
+**Run**: `cd bin; ./09-particles.out`
+
+This example uses instanced rendering to render a large amount of particles. The particle
+system shown is rather basic, only supporting colored particles and no textures. There are
+also no special particle emitter shapes or particle collision. This would complicate the
+example and take away from the understanding of simple particle rendering.
+
+[Code](src/examples/09-particles)
+
+![particles](img/09-particles.tiff)

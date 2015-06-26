@@ -6,7 +6,9 @@ const char* VERTEX_SRC = "#version 330 core\n"
                          "layout(location=1) in vec3 transform;" // x, y, size
                          "void main()"
                          "{"
-                         "    gl_Position = vec4(position + transform.xy, 0.0, 1.0) * transform.z;"
+                         "    gl_Position = vec4(position + transform.xy, 0.0, 1.0);"
+                         "    gl_Position.x *= transform.z;"
+                         "    gl_Position.y *= transform.z;"
                          "}";
 
 const char* FRAGMENT_SRC = "#version 330 core\n"
@@ -62,12 +64,19 @@ ParticleEmitter::ParticleEmitter(int max, float ivl, const glm::vec2& pos, float
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[1]);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
     // Bind the third buffer. We will use this buffer to set positions of the
     // active particles each frame. Because we update the buffer each frame, we use
     // GL_STREAM_DRAW, which lets OpenGL optimize the buffer
     glBindBuffer(GL_ARRAY_BUFFER, transformBuffer);
     glBufferData(GL_ARRAY_BUFFER, particles.size() * 3 * sizeof(float), NULL, GL_STREAM_DRAW);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+    glVertexAttribDivisor(0, 0);
+    glVertexAttribDivisor(1, 1);
 
     glBindVertexArray(0);
     glDeleteBuffers(2, buffers);
@@ -114,8 +123,8 @@ void ParticleEmitter::update(float deltaTime)
     for(int i = 0; i < particles.size(); ++i)
     {
         particles.at(i).life -= deltaTime;
-        // Gravity
-        particles.at(i).speed += glm::vec2(0.0f, -0.00981f) * deltaTime;
+        // Gravity and a random horizontal offset
+        particles.at(i).speed += glm::vec2((rand() % 100) / 25.0f - 2.0f, -0.981f) * deltaTime;
         particles.at(i).position += particles.at(i).speed * deltaTime;
     }
 }
@@ -134,7 +143,7 @@ void ParticleEmitter::render()
         {
             particleBuffer[3 * liveCount] = particles.at(i).position.x;
             particleBuffer[3 * liveCount + 1] = particles.at(i).position.y;
-            particleBuffer[3 * liveCount + 2] = 0.1f; // Right now, all particles have the same size
+            particleBuffer[3 * liveCount + 2] = 0.05f; // Right now, all particles have the same size
             // You can easily change the size of the particles based on life, distance from origin, etc.
             ++liveCount;
         }
@@ -162,7 +171,7 @@ void ParticleEmitter::emit()
     for(i = lastIndex; i < particles.size(); ++i)
     {
         // If the particle is almost dead
-        if(particles.at(lastIndex).life < 0.001f)
+        if(particles.at(i).life < 0.001f)
         {
             lastIndex = i;
             break;
