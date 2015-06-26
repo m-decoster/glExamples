@@ -70,6 +70,7 @@ To compile all examples, you can run `make` or `make all`.
     1. [Render To Texture](#render-to-texture)
     2. [Cubemaps](#cubemaps)
     3. [Instancing](#instancing)
+    4. [Particles](#particles)
 
 ### Hello Triangle
 
