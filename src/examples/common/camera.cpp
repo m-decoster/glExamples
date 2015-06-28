@@ -63,7 +63,7 @@ const glm::mat4& Camera::getProjection()
     // Recalculate the projection matrix and return it
     if(type == CAMERA_ORTHOGONAL)
     {
-        projection = glm::ortho(position.x, width, position.y, height);
+        projection = glm::ortho(position.x, width, height, position.y);
     }
     else
     {

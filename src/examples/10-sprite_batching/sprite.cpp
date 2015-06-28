@@ -41,7 +41,7 @@ void Sprite::setTextureRectangle(int x_, int y_, int w_, int h_)
     h = h_;
 }
 
-void Sprite::setColor(char r_, char g_, char b_, char a_)
+void Sprite::setColor(unsigned char r_, unsigned char g_, unsigned char b_, unsigned char a_)
 {
     r = r_;
     g = g_;
@@ -58,10 +58,9 @@ const glm::mat4& Sprite::getModelMatrix()
 {
     if(dirty)
     {
-        model = glm::mat4();
-        model = glm::scale(model, glm::vec3(scale.x, scale.y, 1.0f));
-        model = glm::rotate(model, glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f));
+        model = glm::rotate(glm::mat4(), glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f));
         model = glm::translate(model, position);
+        model = glm::scale(model, glm::vec3(scale.x, scale.y, 1.0f));
         dirty = false;
     }
     return model;
@@ -85,7 +84,7 @@ bool Sprite::compare(const Sprite& other) const
     return texture < other.texture;
 }
 
-void Sprite::getColor(char* r_, char* g_, char* b_, char* a_) const
+void Sprite::getColor(unsigned char* r_, unsigned char* g_, unsigned char* b_, unsigned char* a_) const
 {
     *r_ = r;
     *g_ = g;

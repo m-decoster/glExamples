@@ -14,7 +14,7 @@ public:
 
     void begin();
     void end();
-    void draw(Sprite& sprite);
+    void draw(Sprite* sprite);
 
     void setCamera(Camera* camera);
 private:

@@ -80,17 +80,14 @@ SpriteBatcher::SpriteBatcher()
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
     // Color vectors differ for each sprite
     glBindBuffer(GL_ARRAY_BUFFER, buffers[CBO]);
-    glBufferData(GL_ARRAY_BUFFER, 0, NULL, GL_STREAM_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 0, NULL, GL_DYNAMIC_DRAW);
     // Texture coordinates differ for each sprite
     glBindBuffer(GL_ARRAY_BUFFER, buffers[TBO]);
-    glBufferData(GL_ARRAY_BUFFER, 0, NULL, GL_STREAM_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 0, NULL, GL_DYNAMIC_DRAW);
     // Model matrices differ for each sprite
     glBindBuffer(GL_ARRAY_BUFFER, buffers[MBO]);
-    glBufferData(GL_ARRAY_BUFFER, 0, NULL, GL_STREAM_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 0, NULL, GL_DYNAMIC_DRAW);
     
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
     // Attributes
     glBindBuffer(GL_ARRAY_BUFFER, buffers[VBO]);
     glEnableVertexAttribArray(0); // position
@@ -114,10 +111,10 @@ SpriteBatcher::SpriteBatcher()
     glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
     glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
 
+    glBindVertexArray(0);
+
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-    glBindVertexArray(0);
 }
 
 SpriteBatcher::~SpriteBatcher()
@@ -138,9 +135,9 @@ void SpriteBatcher::end()
     queue.clear();
 }
 
-void SpriteBatcher::draw(Sprite& sprite)
+void SpriteBatcher::draw(Sprite* sprite)
 {
-    queue.push_back(&sprite);
+    queue.push_back(sprite);
     if(queue.size() >= MAX_SPRITES)
     {
         render();
@@ -182,7 +179,7 @@ void SpriteBatcher::render()
         
         // Now for the colors
         glm::vec4 color;
-        char r, g, b, a;
+        unsigned char r, g, b, a;
 
         (*it)->getColor(&r, &g, &b, &a);
 
@@ -209,22 +206,27 @@ void SpriteBatcher::render()
     }
 
     glBindVertexArray(vao);
+    glUseProgram(program);
 
     // Send the color data
     glBindBuffer(GL_ARRAY_BUFFER, buffers[CBO]);
-    glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(glm::vec4), &colors[0], GL_STREAM_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(glm::vec4), &colors[0], GL_DYNAMIC_DRAW);
 
     // Send the texture coordinate data
     glBindBuffer(GL_ARRAY_BUFFER, buffers[TBO]);
-    glBufferData(GL_ARRAY_BUFFER, texCoords.size() * sizeof(glm::vec2), &texCoords[0], GL_STREAM_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, texCoords.size() * sizeof(glm::vec2), &texCoords[0], GL_DYNAMIC_DRAW);
 
     // Send the model matrices
     glBindBuffer(GL_ARRAY_BUFFER, buffers[MBO]);
-    glBufferData(GL_ARRAY_BUFFER, models.size() * sizeof(glm::mat4), &models[0], GL_STREAM_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, models.size() * sizeof(glm::mat4), &models[0], GL_DYNAMIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    // Set the and projection uniform (there is no need for a view matrix in 2D)
+    // Set the projection uniform (there is no need for a view matrix in 2D)
     glUniformMatrix4fv(glGetUniformLocation(program, "projection"), 1, GL_FALSE, glm::value_ptr(camera->getProjection()));
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, (*queue.begin())->getTexture());
+    glUniform1i(glGetUniformLocation(program, "tex"), 0);
 
     // Draw
     glDrawElements(GL_TRIANGLES, queue.size() * 6, GL_UNSIGNED_INT, 0);

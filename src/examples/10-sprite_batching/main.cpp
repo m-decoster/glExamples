@@ -6,7 +6,7 @@
 #define SQRT_NUM_SPRITES 40
 
 int main(void)
-{
+{ 
     GLFWwindow* window;
 
     window = init("Sprite batching", 640, 480);
@@ -14,6 +14,9 @@ int main(void)
     {
         return -1;
     }
+
+    // Transparency
+    glEnable(GL_BLEND);
 
     Camera camera(CAMERA_ORTHOGONAL, 45.0f, 0.1f, 1000.0f, 640.0f, 480.0f);
     setCamera(&camera);
@@ -27,16 +30,16 @@ int main(void)
     }
 
     SpriteBatcher spritebatch;
+    spritebatch.setCamera(&camera);
 
-    std::vector<Sprite> sprites;
+    std::vector<Sprite*> sprites;
     for(int i = 0; i < SQRT_NUM_SPRITES; ++i)
     {
         for(int j = 0; j < SQRT_NUM_SPRITES; ++j)
         {
-            Sprite s(texture, w, h);
-            s.setPosition(i, j, rand() % 10 / 10.0f);
-            s.setColor(rand() % 10 / 10.0f, rand() % 10 / 10.0f, rand() % 10 / 10.0f, 1.0f);
-            s.setTextureRectangle(rand() % (w - 10), rand() % (h - 10), 10, 10);
+            Sprite* s = new Sprite(texture, w, h);
+            s->setPosition(i, j, 0.0f);
+            s->setTextureRectangle(0, 0, w, h);
             sprites.push_back(s);
         }
     }
@@ -45,6 +48,11 @@ int main(void)
 
     while(!glfwWindowShouldClose(window))
     {
+        if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        {
+            break;
+        }
+
         updateCamera(640, 480, window);
 
         glClear(GL_COLOR_BUFFER_BIT);
@@ -62,6 +70,11 @@ int main(void)
         glfwPollEvents();
     }
 
+    // Cleanup
+    for(auto it = sprites.begin(); it != sprites.end(); ++it)
+    {
+        delete *it;
+    }
     glDeleteTextures(1, &texture);
 
     glfwTerminate();
