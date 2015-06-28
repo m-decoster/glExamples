@@ -4,7 +4,7 @@ INCLUDES=-Isrc/libs/
 LIBS=-Llib -lglfw3 -lSOIL -lassimp -lz -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo
 COMMON=src/examples/common/util.cpp src/examples/common/shader.cpp src/examples/common/camera.cpp
 
-all: hello_triangle hello_sprite hello_cube hello_heightmap hello_mesh render_to_texture cubemaps
+all: hello_triangle hello_sprite hello_cube hello_heightmap hello_mesh render_to_texture cubemaps instancing particles sprite_batching
 
 hello_triangle:
 	$(CC) $(INCLUDES) $(CFLAGS) src/examples/01-hello_triangle/main.cpp $(COMMON) -o bin/01-hello_triangle.out $(LIBS)
@@ -42,6 +42,9 @@ instancing:
 
 particles:
 	$(CC) $(INCLUDES) $(CFLAGS) src/examples/09-particles/main.cpp src/examples/09-particles/particle.cpp $(COMMON) -o bin/09-particles.out $(LIBS)
+
+sprite_batching:
+	$(CC) $(INCLUDES) $(CFLAGS) src/examples/10-sprite_batching/main.cpp src/examples/10-sprite_batching/sprite.cpp src/examples/10-sprite_batching/spritebatcher.cpp $(COMMON) -o bin/10-sprite_batching.out $(LIBS)
 
 clean:
 	rm bin/*
