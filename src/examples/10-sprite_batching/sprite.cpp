@@ -1,8 +1,8 @@
 #include "sprite.h"
 
-Sprite::Sprite(GLuint texture)
+Sprite::Sprite(GLuint texture, int tW, int tH)
     : dirty(true), texture(texture), scale(1.0f, 1.0f), angle(0.0f), position(0.0f, 0.0f, 0.0f),
-    r(255), g(255), b(255), a(255)
+    r(255), g(255), b(255), a(255), textureWidth(tW), textureHeight(tH)
 {
 }
 
@@ -81,4 +81,18 @@ bool Sprite::compare(const Sprite& other) const
     }
 
     return texture < other.texture;
+}
+
+void Sprite::getColor(char* r_, char* g_, char* b_, char* a_) const
+{
+    *r_ = r;
+    *g_ = g;
+    *b_ = b;
+    *a_ = a;
+}
+
+void Sprite::getTextureDimensions(int* tW, int* tH)
+{
+    *tW = textureWidth;
+    *tH = textureHeight;
 }

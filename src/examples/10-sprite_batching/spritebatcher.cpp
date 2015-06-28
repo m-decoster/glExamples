@@ -2,17 +2,42 @@
 #include <cassert>
 #include <algorithm>
 
-const char* VERTEX_SRC = "";
-const char* FRAGMENT_SRC = "";
+const char* VERTEX_SRC = "#version 330 core\n"
+                         "layout(location=0) in vec2 position;"
+                         "layout(location=1) in vec4 color;"
+                         "layout(location=2) in vec2 texCoord;"
+                         "layout(location=3) in mat4 model;"
+                         "out vec2 fTexCoord;"
+                         "out vec4 fColor;"
+                         "uniform mat4 view;"
+                         "uniform mat4 projection;"
+                         "void main()"
+                         "{"
+                         "    gl_Position = model * view * projection * vec4(position, 0.0, 1.0);"
+                         "    fColor = color;"
+                         "    fTexCoord = texCoord;"
+                         "}";
+
+const char* FRAGMENT_SRC = "#version 330 core\n"
+                           "in vec2 fTexCoord;"
+                           "in vec4 fColor;"
+                           "uniform sampler2D tex;"
+                           "out vec4 outputColor;"
+                           "void main()"
+                           "{"
+                           "    outputColor = texture(tex, fTexCoord) * fColor;"
+                           "}";
 
 const int MAX_SPRITES = 5000;
 
 #define VBO 0   // vertex buffer object
 #define EBO 1   // element buffer object
 #define MBO 2   // model buffer object (for the model matrix of each sprite)
+#define CBO 3   // color buffer object
+#define TBO 4   // texture coordinate buffer object
 
 SpriteBatcher::SpriteBatcher()
-    : camera(NULL), vao(0), vbo(0), ebo(0), mbo(0)
+    : camera(NULL), vao(0)
 {
     // Create shader program
     GLuint vertex = createShader(VERTEX_SRC, GL_VERTEX_SHADER);
@@ -28,7 +53,7 @@ SpriteBatcher::SpriteBatcher()
 
     // Create vertex array and prepare buffers for being updated >= once per frame
     glGenVertexArrays(1, &vao);
-    glGenBuffers(3, buffers);
+    glGenBuffers(5, buffers);
 
     glBindVertexArray(vao);
 
@@ -52,6 +77,12 @@ SpriteBatcher::SpriteBatcher()
     // Indices are the same for each sprite
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[EBO]);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    // Color vectors differ for each sprite
+    glBindBuffer(GL_ARRAY_BUFFER, buffers[CBO]);
+    glBufferData(GL_ARRAY_BUFFER, 0, NULL, GL_STREAM_DRAW);
+    // Texture coordinates differ for each sprite
+    glBindBuffer(GL_ARRAY_BUFFER, buffers[TBO]);
+    glBufferData(GL_ARRAY_BUFFER, 0, NULL, GL_STREAM_DRAW);
     // Model matrices differ for each sprite
     glBindBuffer(GL_ARRAY_BUFFER, buffers[MBO]);
     glBufferData(GL_ARRAY_BUFFER, 0, NULL, GL_STREAM_DRAW);
@@ -62,11 +93,15 @@ SpriteBatcher::SpriteBatcher()
     // Attributes
     glBindBuffer(GL_ARRAY_BUFFER, buffers[VBO]);
     glEnableVertexAttribArray(0); // position
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, (void*)(7 * sizeof(float)), (void*)0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, buffers[CBO]);
     glEnableVertexAttribArray(1); // color
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, (void*)(7 * sizeof(float)), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, buffers[TBO]);
     glEnableVertexAttribArray(2); // texture coordinates
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, (void*)(7 * sizeof(float)), (void*)(5 * sizeof(float)));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
     glBindBuffer(GL_ARRAY_BUFFER, buffers[MBO]);
     glEnableVertexAttribArray(3); // model matrix
@@ -78,13 +113,16 @@ SpriteBatcher::SpriteBatcher()
     glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
     glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
 
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
     glBindVertexArray(0);
 }
 
 SpriteBatcher::~SpriteBatcher()
 {
     glDeleteVertexArrays(1, &vao);
-    glDeleteBuffers(3, buffers);
+    glDeleteBuffers(5, buffers);
 }
 
 void SpriteBatcher::begin()
@@ -124,6 +162,8 @@ void SpriteBatcher::render()
      * it's easy and doesn't show any real performance issues
      */
     std::vector<glm::mat4> models;
+    std::vector<glm::vec4> colors;
+    std::vector<glm::vec2> texCoords;
 
     for(auto it = queue.begin(); it != queue.end(); ++it)
     {
@@ -132,9 +172,44 @@ void SpriteBatcher::render()
         models.push_back(*it);
         models.push_back(*it);
         models.push_back(*it);
+        
+        // Now for the colors
+        glm::vec4 color;
+        char r, g, b, a;
+
+        it->getColor(&r, &g, &b, &a);
+
+        color.r = r / 255.0f;
+        color.g = g / 255.0f;
+        color.b = b / 255.0f;
+        color.a = a / 255.0f;
+
+        colors.push_back(color);
+        colors.push_back(color);
+        colors.push_back(color);
+        colors.push_back(color);
+
+        // Now for the texture coordinates
+        int x, y, w, h;
+        it->getTextureRectangle(&x, &y, &w, &h);
+        int tW, tH;
+        it->getTextureDimensions(&tW, &tH);
+
+        texCoords.push_back(x / (float)tW, y / (float)tH);
+        texCoords.push_back((x + w) / (float)tW, y / (float)tH);
+        texCoords.push_back(x / (float)tW, (y + h) / (float)tH);
+        texCoords.push_back((x + w) / (float)tW, (y + h) / (float)tH);
     }
 
     glBindVertexArray(vao);
+
+    // Send the color data
+    glBindBuffer(GL_ARRAY_BUFFER, buffers[CBO]);
+    glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(glm::vec4), &colors[0], GL_STREAM_DRAW);
+
+    // Send the texture coordinate data
+    glBindBuffer(GL_ARRAY_BUFFER, buffers[TBO]);
+    glBufferData(GL_ARRAY_BUFFER, texCoords.size() * sizeof(glm::vec2), &texCoords[0], GL_STREAM_DRAW);
 
     // Send the model matrices
     glBindBuffer(GL_ARRAY_BUFFER, buffers[MBO]);

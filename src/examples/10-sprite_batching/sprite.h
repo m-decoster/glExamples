@@ -7,7 +7,7 @@
 class Sprite
 {
 public:
-    Sprite(GLuint texture);
+    Sprite(GLuint texture, int textureWidth, int textureHeight);
     ~Sprite();
 
     void setPosition(float x, float y, float z);
@@ -19,6 +19,8 @@ public:
     GLuint getTexture() const;
     const glm::mat4& getModelMatrix();
     void getTextureRectangle(int* x, int* y, int* w, int* h) const;
+    void getColor(char* r, char* g, char* b, char* a) const;
+    void getTextureDimensions(int* tW, int* tH);
 
     bool compare(const Sprite& other) const;
 private:
@@ -30,6 +32,7 @@ private:
     char r, g, b, a;
     glm::mat4 model;
     int x, y, w, h; // Texture rectangle
+    int textureWidth, textureHeight;
 };
 
 #endif
