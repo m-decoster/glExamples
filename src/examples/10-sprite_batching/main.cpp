@@ -18,8 +18,7 @@ int main(void)
     // Transparency
     glEnable(GL_BLEND);
 
-    Camera camera(CAMERA_ORTHOGONAL, 45.0f, 0.1f, 1000.0f, 640.0f, 480.0f);
-    setCamera(&camera);
+    Camera camera(CAMERA_ORTHOGONAL, 45.0f, -1.0f, 10000.0f, 640.0f, 480.0f);
 
     int w, h;
     GLuint texture = loadImage("spritesheet.png", &w, &h, 0, true);
@@ -38,7 +37,9 @@ int main(void)
         for(int j = 0; j < SQRT_NUM_SPRITES; ++j)
         {
             Sprite* s = new Sprite(texture, w, h);
-            s->setPosition(i, j, 0.0f);
+            s->setPosition(rand() % 640, rand() % 320, 0.0f);
+            s->setScale(50.0f, 50.0f);
+            s->setAngle((float)(rand() % 360));
             s->setTextureRectangle(0, 0, w, h);
             sprites.push_back(s);
         }
@@ -52,8 +53,6 @@ int main(void)
         {
             break;
         }
-
-        updateCamera(640, 480, window);
 
         glClear(GL_COLOR_BUFFER_BIT);
 

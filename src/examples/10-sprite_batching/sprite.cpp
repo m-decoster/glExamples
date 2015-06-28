@@ -58,9 +58,17 @@ const glm::mat4& Sprite::getModelMatrix()
 {
     if(dirty)
     {
-        model = glm::rotate(glm::mat4(), glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f));
+        // Scale first, then rotate, then translate
+        model = glm::mat4();
+        // Translate last
         model = glm::translate(model, position);
+        // Rotate second (around the origin)
+        model = glm::translate(model, glm::vec3(0.5f * scale.x, 0.5f * scale.y, 0.0f));
+        model = glm::rotate(model, glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f));
+        model = glm::translate(model, glm::vec3(-0.5f * scale.x, -0.5f * scale.y, 0.0f));
+        // Scale first
         model = glm::scale(model, glm::vec3(scale.x, scale.y, 1.0f));
+
         dirty = false;
     }
     return model;
@@ -76,7 +84,7 @@ void Sprite::getTextureRectangle(int* x_, int* y_, int* w_, int* h_) const
 
 bool Sprite::compare(const Sprite& other) const
 {
-    if(std::abs(position.z - other.position.z) < 0.0001f)
+    if(texture == other.texture)
     {
         return position.z < other.position.z;
     }

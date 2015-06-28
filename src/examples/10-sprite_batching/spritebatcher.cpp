@@ -14,7 +14,7 @@ const char* VERTEX_SRC = "#version 330 core\n"
                          "uniform mat4 projection;"
                          "void main()"
                          "{"
-                         "    gl_Position = model * projection * vec4(position, 0.0, 1.0);"
+                         "    gl_Position = projection * model * vec4(position, 0.0, 1.0);"
                          "    fColor = color;"
                          "    fTexCoord = texCoord;"
                          "}";
@@ -58,33 +58,14 @@ SpriteBatcher::SpriteBatcher()
 
     glBindVertexArray(vao);
 
-    float vertices[] =
-    {
-        -0.5f, -0.5f,
-         0.5f, -0.5f,
-        -0.5f,  0.5f,
-         0.5f,  0.5f
-    };
-
-    GLuint indices[] =
-    {
-        0, 1, 2,
-        2, 1, 3
-    };
-
-    // Vertices are the same for each sprite
     glBindBuffer(GL_ARRAY_BUFFER, buffers[VBO]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    // Indices are the same for each sprite
+    glBufferData(GL_ARRAY_BUFFER, 0, NULL, GL_DYNAMIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[EBO]);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-    // Color vectors differ for each sprite
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 0, NULL, GL_DYNAMIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, buffers[CBO]);
     glBufferData(GL_ARRAY_BUFFER, 0, NULL, GL_DYNAMIC_DRAW);
-    // Texture coordinates differ for each sprite
     glBindBuffer(GL_ARRAY_BUFFER, buffers[TBO]);
     glBufferData(GL_ARRAY_BUFFER, 0, NULL, GL_DYNAMIC_DRAW);
-    // Model matrices differ for each sprite
     glBindBuffer(GL_ARRAY_BUFFER, buffers[MBO]);
     glBufferData(GL_ARRAY_BUFFER, 0, NULL, GL_DYNAMIC_DRAW);
     
@@ -103,12 +84,12 @@ SpriteBatcher::SpriteBatcher()
 
     glBindBuffer(GL_ARRAY_BUFFER, buffers[MBO]);
     glEnableVertexAttribArray(3); // model matrix
-    glEnableVertexAttribArray(4);
-    glEnableVertexAttribArray(5);
-    glEnableVertexAttribArray(6);
     glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
+    glEnableVertexAttribArray(4);
     glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
+    glEnableVertexAttribArray(5);
     glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
+    glEnableVertexAttribArray(6);
     glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
 
     glBindVertexArray(0);
@@ -152,7 +133,12 @@ void SpriteBatcher::setCamera(Camera* c)
 
 void SpriteBatcher::render()
 {
-    // Sort the queue: first by z, then by texture
+    if(queue.empty())
+    {
+        return;
+    }
+
+    // Sort the queue by z and texture
     std::sort(queue.begin(), queue.end(),
             [](const Sprite* a, const Sprite* b) -> bool
             {
@@ -168,20 +154,50 @@ void SpriteBatcher::render()
     std::vector<glm::mat4> models;
     std::vector<glm::vec4> colors;
     std::vector<glm::vec2> texCoords;
+    std::vector<glm::vec2> vertices;
+    std::vector<GLuint> indices;
 
-    for(auto it = queue.begin(); it != queue.end(); ++it)
+    static const float _vertices[] =
     {
+        0.0f, 0.0f,
+        1.0f, 0.0f,
+        0.0f, 1.0f,
+        1.0f, 1.0f
+    };
+
+    static const GLuint _indices[] =
+    {
+        0, 1, 2,
+        2, 1, 3
+    };
+
+    for(int i = 0; i < queue.size(); ++i)
+    {
+        Sprite* current = queue.at(i);
+
+        // Each sprite has the same 4 vertices and indices
+        for(int j = 0; j < 4; j += 2)
+        {
+            vertices.emplace_back(_vertices[j], _vertices[j + 1]);
+        }
+
+        for(int j = 0; j < 6; ++j)
+        {
+            indices.push_back(_indices[j]);
+        }
+
         // We have to add the model matrix 4 times, once for each vertex
-        models.push_back((*it)->getModelMatrix());
-        models.push_back((*it)->getModelMatrix());
-        models.push_back((*it)->getModelMatrix());
-        models.push_back((*it)->getModelMatrix());
+        glm::mat4 model = current->getModelMatrix();
+        models.push_back(model);
+        models.push_back(model);
+        models.push_back(model);
+        models.push_back(model);
         
         // Now for the colors
         glm::vec4 color;
         unsigned char r, g, b, a;
 
-        (*it)->getColor(&r, &g, &b, &a);
+        current->getColor(&r, &g, &b, &a);
 
         color.r = r / 255.0f;
         color.g = g / 255.0f;
@@ -195,9 +211,9 @@ void SpriteBatcher::render()
 
         // Now for the texture coordinates
         int x, y, w, h;
-        (*it)->getTextureRectangle(&x, &y, &w, &h);
+        current->getTextureRectangle(&x, &y, &w, &h);
         int tW, tH;
-        (*it)->getTextureDimensions(&tW, &tH);
+        current->getTextureDimensions(&tW, &tH);
 
         texCoords.emplace_back(x / (float)tW, y / (float)tH);
         texCoords.emplace_back((x + w) / (float)tW, y / (float)tH);
@@ -207,6 +223,14 @@ void SpriteBatcher::render()
 
     glBindVertexArray(vao);
     glUseProgram(program);
+
+    // Send the vertices
+    glBindBuffer(GL_ARRAY_BUFFER, buffers[VBO]);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec2), &vertices[0], GL_DYNAMIC_DRAW);
+
+    // Send the indices
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[EBO]);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), &indices[0], GL_DYNAMIC_DRAW);
 
     // Send the color data
     glBindBuffer(GL_ARRAY_BUFFER, buffers[CBO]);
@@ -221,7 +245,7 @@ void SpriteBatcher::render()
     glBufferData(GL_ARRAY_BUFFER, models.size() * sizeof(glm::mat4), &models[0], GL_DYNAMIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    // Set the projection uniform (there is no need for a view matrix in 2D)
+    // Set the projection uniform
     glUniformMatrix4fv(glGetUniformLocation(program, "projection"), 1, GL_FALSE, glm::value_ptr(camera->getProjection()));
 
     glActiveTexture(GL_TEXTURE0);
@@ -229,7 +253,7 @@ void SpriteBatcher::render()
     glUniform1i(glGetUniformLocation(program, "tex"), 0);
 
     // Draw
-    glDrawElements(GL_TRIANGLES, queue.size() * 6, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 
     glBindVertexArray(0);
 }
