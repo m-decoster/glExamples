@@ -29,6 +29,8 @@ These examples have some dependencies:
 * [GLM](http://glm.g-truc.net)
 * [ASSIMP](http://assimp.sf.net/)
 
+The sprite batching example uses a sprite sheet created by [sithjester](http://untamed.wild-refuge.net/rmxpresources.php?characters). This sprite sheet is included in this repository.
+
 ## Compiling
 
 ### OS X

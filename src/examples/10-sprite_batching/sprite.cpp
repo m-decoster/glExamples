@@ -1,4 +1,6 @@
 #include "sprite.h"
+#include <glm/gtc/matrix_transform.hpp>
+#include <cmath>
 
 Sprite::Sprite(GLuint texture, int tW, int tH)
     : dirty(true), texture(texture), scale(1.0f, 1.0f), angle(0.0f), position(0.0f, 0.0f, 0.0f),
@@ -75,7 +77,7 @@ void Sprite::getTextureRectangle(int* x_, int* y_, int* w_, int* h_) const
 
 bool Sprite::compare(const Sprite& other) const
 {
-    if(absf(position.z - other.position.z) < 0.0001f)
+    if(std::abs(position.z - other.position.z) < 0.0001f)
     {
         return position.z < other.position.z;
     }

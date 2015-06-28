@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-Wall
+CFLAGS=-Wall -std=c++11
 INCLUDES=-Isrc/libs/
 LIBS=-Llib -lglfw3 -lSOIL -lassimp -lz -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo
 COMMON=src/examples/common/util.cpp src/examples/common/shader.cpp src/examples/common/camera.cpp
@@ -45,6 +45,7 @@ particles:
 
 sprite_batching:
 	$(CC) $(INCLUDES) $(CFLAGS) src/examples/10-sprite_batching/main.cpp src/examples/10-sprite_batching/sprite.cpp src/examples/10-sprite_batching/spritebatcher.cpp $(COMMON) -o bin/10-sprite_batching.out $(LIBS)
+	cp src/examples/10-sprite_batching/spritesheet.png bin/spritesheet.png
 
 clean:
 	rm bin/*

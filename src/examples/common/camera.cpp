@@ -2,10 +2,17 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 Camera::Camera(CameraType type, float fov, float zNear, float zFar, float width, float height)
-    : width(width), height(height), zNear(zNear), zFar(zFar), fov(fov)
+    : type(type), width(width), height(height), zNear(zNear), zFar(zFar), fov(fov)
 {
     angle = glm::vec2(0.0f, 0.0f);
-    projection = glm::perspective(glm::radians(fov), width / height, zNear, zFar);
+    if(type == CAMERA_ORTHOGONAL)
+    {
+        projection = glm::ortho(0.0f, width, 0.0f, height);
+    }
+    else
+    {
+        projection = glm::perspective(glm::radians(fov), width / height, zNear, zFar);
+    }
 }
 
 Camera::~Camera()
@@ -54,7 +61,14 @@ const glm::mat4& Camera::getView()
 const glm::mat4& Camera::getProjection()
 {
     // Recalculate the projection matrix and return it
-    projection = glm::perspective(glm::radians(fov), width / height, zNear, zFar);
+    if(type == CAMERA_ORTHOGONAL)
+    {
+        projection = glm::ortho(position.x, width, position.y, height);
+    }
+    else
+    {
+        projection = glm::perspective(glm::radians(fov), width / height, zNear, zFar);
+    }
     return projection;
 }
 

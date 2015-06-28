@@ -1,7 +1,9 @@
 #include "spritebatcher.h"
+#include "../common/shader.h"
 #include <cassert>
 #include <algorithm>
-
+#include <glm/gtc/type_ptr.hpp>
+                             
 const char* VERTEX_SRC = "#version 330 core\n"
                          "layout(location=0) in vec2 position;"
                          "layout(location=1) in vec4 color;"
@@ -9,11 +11,10 @@ const char* VERTEX_SRC = "#version 330 core\n"
                          "layout(location=3) in mat4 model;"
                          "out vec2 fTexCoord;"
                          "out vec4 fColor;"
-                         "uniform mat4 view;"
                          "uniform mat4 projection;"
                          "void main()"
                          "{"
-                         "    gl_Position = model * view * projection * vec4(position, 0.0, 1.0);"
+                         "    gl_Position = model * projection * vec4(position, 0.0, 1.0);"
                          "    fColor = color;"
                          "    fTexCoord = texCoord;"
                          "}";
@@ -37,7 +38,7 @@ const int MAX_SPRITES = 5000;
 #define TBO 4   // texture coordinate buffer object
 
 SpriteBatcher::SpriteBatcher()
-    : camera(NULL), vao(0)
+    : camera(NULL), vao(0), program(0)
 {
     // Create shader program
     GLuint vertex = createShader(VERTEX_SRC, GL_VERTEX_SHADER);
@@ -123,6 +124,7 @@ SpriteBatcher::~SpriteBatcher()
 {
     glDeleteVertexArrays(1, &vao);
     glDeleteBuffers(5, buffers);
+    glDeleteProgram(program);
 }
 
 void SpriteBatcher::begin()
@@ -138,7 +140,12 @@ void SpriteBatcher::end()
 
 void SpriteBatcher::draw(Sprite& sprite)
 {
-    queue.push_back(sprite);
+    queue.push_back(&sprite);
+    if(queue.size() >= MAX_SPRITES)
+    {
+        render();
+        queue.clear();
+    }
 }
 
 void SpriteBatcher::setCamera(Camera* c)
@@ -150,9 +157,9 @@ void SpriteBatcher::render()
 {
     // Sort the queue: first by z, then by texture
     std::sort(queue.begin(), queue.end(),
-            [](const Sprite& a, const Sprite& b) -> bool
+            [](const Sprite* a, const Sprite* b) -> bool
             {
-                return a.compare(b);
+                return a->compare(*b);
             });
 
     /*
@@ -168,16 +175,16 @@ void SpriteBatcher::render()
     for(auto it = queue.begin(); it != queue.end(); ++it)
     {
         // We have to add the model matrix 4 times, once for each vertex
-        models.push_back(*it);
-        models.push_back(*it);
-        models.push_back(*it);
-        models.push_back(*it);
+        models.push_back((*it)->getModelMatrix());
+        models.push_back((*it)->getModelMatrix());
+        models.push_back((*it)->getModelMatrix());
+        models.push_back((*it)->getModelMatrix());
         
         // Now for the colors
         glm::vec4 color;
         char r, g, b, a;
 
-        it->getColor(&r, &g, &b, &a);
+        (*it)->getColor(&r, &g, &b, &a);
 
         color.r = r / 255.0f;
         color.g = g / 255.0f;
@@ -191,14 +198,14 @@ void SpriteBatcher::render()
 
         // Now for the texture coordinates
         int x, y, w, h;
-        it->getTextureRectangle(&x, &y, &w, &h);
+        (*it)->getTextureRectangle(&x, &y, &w, &h);
         int tW, tH;
-        it->getTextureDimensions(&tW, &tH);
+        (*it)->getTextureDimensions(&tW, &tH);
 
-        texCoords.push_back(x / (float)tW, y / (float)tH);
-        texCoords.push_back((x + w) / (float)tW, y / (float)tH);
-        texCoords.push_back(x / (float)tW, (y + h) / (float)tH);
-        texCoords.push_back((x + w) / (float)tW, (y + h) / (float)tH);
+        texCoords.emplace_back(x / (float)tW, y / (float)tH);
+        texCoords.emplace_back((x + w) / (float)tW, y / (float)tH);
+        texCoords.emplace_back(x / (float)tW, (y + h) / (float)tH);
+        texCoords.emplace_back((x + w) / (float)tW, (y + h) / (float)tH);
     }
 
     glBindVertexArray(vao);
@@ -216,8 +223,7 @@ void SpriteBatcher::render()
     glBufferData(GL_ARRAY_BUFFER, models.size() * sizeof(glm::mat4), &models[0], GL_STREAM_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    // Set the view and projection uniforms
-    glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_FALSE, glm::value_ptr(camera->getView()));
+    // Set the and projection uniform (there is no need for a view matrix in 2D)
     glUniformMatrix4fv(glGetUniformLocation(program, "projection"), 1, GL_FALSE, glm::value_ptr(camera->getProjection()));
 
     // Draw
