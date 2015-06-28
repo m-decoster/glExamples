@@ -32,10 +32,27 @@ SpriteBatcher::SpriteBatcher()
 
     glBindVertexArray(vao);
 
+    float vertices[] =
+    {
+        -0.5f, -0.5f,
+         0.5f, -0.5f,
+        -0.5f,  0.5f,
+         0.5f,  0.5f
+    };
+
+    GLuint indices[] =
+    {
+        0, 1, 2,
+        2, 1, 3
+    };
+
+    // Vertices are the same for each sprite
     glBindBuffer(GL_ARRAY_BUFFER, buffers[VBO]);
-    glBufferData(GL_ARRAY_BUFFER, 0, NULL, GL_STREAM_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    // Indices are the same for each sprite
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[EBO]);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 0, NULL, GL_STREAM_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    // Model matrices differ for each sprite
     glBindBuffer(GL_ARRAY_BUFFER, buffers[MBO]);
     glBufferData(GL_ARRAY_BUFFER, 0, NULL, GL_STREAM_DRAW);
     
@@ -72,16 +89,23 @@ SpriteBatcher::~SpriteBatcher()
 
 void SpriteBatcher::begin()
 {
+    // Do nothing
 }
 
 void SpriteBatcher::end()
 {
     render();
+    queue.clear();
 }
 
 void SpriteBatcher::draw(Sprite& sprite)
 {
     queue.push_back(sprite);
+}
+
+void SpriteBatcher::setCamera(Camera* c)
+{
+    camera = c;
 }
 
 void SpriteBatcher::render()
@@ -92,5 +116,37 @@ void SpriteBatcher::render()
             {
                 return a.compare(b);
             });
-    
+
+    /*
+     * In this implementation I have chosen to send the model data for each vertex.
+     * In another implementation I transformed the vertices on the CPU.
+     * Both have their advantages and drawbacks. I chose this method because
+     * it's easy and doesn't show any real performance issues
+     */
+    std::vector<glm::mat4> models;
+
+    for(auto it = queue.begin(); it != queue.end(); ++it)
+    {
+        // We have to add the model matrix 4 times, once for each vertex
+        models.push_back(*it);
+        models.push_back(*it);
+        models.push_back(*it);
+        models.push_back(*it);
+    }
+
+    glBindVertexArray(vao);
+
+    // Send the model matrices
+    glBindBuffer(GL_ARRAY_BUFFER, buffers[MBO]);
+    glBufferData(GL_ARRAY_BUFFER, models.size() * sizeof(glm::mat4), &models[0], GL_STREAM_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    // Set the view and projection uniforms
+    glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_FALSE, glm::value_ptr(camera->getView()));
+    glUniformMatrix4fv(glGetUniformLocation(program, "projection"), 1, GL_FALSE, glm::value_ptr(camera->getProjection()));
+
+    // Draw
+    glDrawElements(GL_TRIANGLES, queue.size() * 6, GL_UNSIGNED_INT, 0);
+
+    glBindVertexArray(0);
 }

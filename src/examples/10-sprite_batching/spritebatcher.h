@@ -14,6 +14,8 @@ public:
     void begin();
     void end();
     void draw(Sprite& sprite);
+
+    void setCamera(Camera* camera);
 private:
     Camera* camera;
     GLuint vao;

@@ -5,14 +5,15 @@
 
 enum CameraType
 {
-    CAMERA_PERSPECTIVE
+    CAMERA_PERSPECTIVE,
+    CAMERA_ORTHOGONAL
 };
 
 class Camera
 {
 public:
     /**
-     * Create a new camera. Currently only perspective projection is supported
+     * Create a new camera.
      * @param fov The vertical field of view
      * @param zNear Cut-off for things near the camera
      * @param zFar Cut-off for things far from the camera
