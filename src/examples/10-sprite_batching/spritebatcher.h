@@ -5,6 +5,7 @@
 #include "../common/camera.h"
 #include "../common/util.h"
 #include <vector>
+#include <glm/glm.hpp>
 
 class SpriteBatcher
 {
@@ -20,8 +21,12 @@ public:
 private:
     Camera* camera;
     GLuint vao, program;
-    GLuint buffers[5];
-    std::vector<Sprite*> queue;
+    GLuint buffers[3];
+    std::vector<float> vertices;
+    std::vector<GLuint> indices;
+    std::vector<glm::mat4> modelMatrices;
+    GLuint lastTexture;
+    int drawn;
 
     void render();
 };

@@ -15,9 +15,6 @@ int main(void)
         return -1;
     }
 
-    // Transparency
-    glEnable(GL_BLEND);
-
     Camera camera(CAMERA_ORTHOGONAL, 45.0f, -1.0f, 10000.0f, 640.0f, 480.0f);
 
     int w, h;
@@ -67,6 +64,9 @@ int main(void)
 
         glfwSwapBuffers(window);
         glfwPollEvents();
+
+        std::cout << glfwGetTime() << std::endl;
+        glfwSetTime(0.0);
     }
 
     // Cleanup
