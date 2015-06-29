@@ -71,6 +71,7 @@ To compile all examples, you can run `make` or `make all`.
     2. [Cubemaps](#cubemaps)
     3. [Instancing](#instancing)
     4. [Particles](#particles)
+    5. [Sprite Batching](#sprite-batching)
 
 ### Hello Triangle
 
@@ -204,7 +205,7 @@ example and take away from the understanding of simple particle rendering.
 
 ![particles](img/09-particles.tiff)
 
-### Sprite batching
+### Sprite Batching
 
 *Level: intermediate*
 
