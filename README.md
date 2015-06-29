@@ -203,3 +203,20 @@ example and take away from the understanding of simple particle rendering.
 [Code](src/examples/09-particles)
 
 ![particles](img/09-particles.tiff)
+
+### Sprite batching
+
+*Level: intermediate*
+
+**Compile**: `make sprite_batching`  
+**Run**: `cd bin; ./10-sprite_batching.out`
+
+This example shows how to batch draw calls for sprites. This allows you to render thousands
+of sprites at a high framerate. This implementation keeps collecting sprites into a buffer
+until the buffer is full or a different texture is encountered. Other implementations
+sort the buffer by texture and then render the whole buffer. This one is the easiest to implement,
+but has more draw calls in a worst case scenario. It does not have the overhead of sorting.
+
+[Code](src/examples/10-sprite_batching)
+
+![particles](img/10-sprite_batching.tiff)

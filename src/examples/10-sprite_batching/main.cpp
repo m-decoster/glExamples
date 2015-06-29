@@ -37,7 +37,7 @@ int main(void)
             s->setPosition(rand() % 640, rand() % 480, 0.0f);
             s->setScale(50.0f, 50.0f);
             s->setAngle((float)(rand() % 360));
-            s->setTextureRectangle(rand() % (w - 10), rand() % (h - 10), 10, 10);
+            s->setTextureRectangle(0, 0, w, h);
             sprites.push_back(s);
         }
     }
