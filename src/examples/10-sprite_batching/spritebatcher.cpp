@@ -8,13 +8,12 @@ const char* VERTEX_SRC = "#version 330 core\n"
                          "layout(location=0) in vec2 position;"
                          "layout(location=1) in vec4 color;"
                          "layout(location=2) in vec2 texCoord;"
-                         "layout(location=3) in mat4 model;"
                          "out vec2 fTexCoord;"
                          "out vec4 fColor;"
                          "uniform mat4 projection;"
                          "void main()"
                          "{"
-                         "    gl_Position = projection * model * vec4(position, 0.0, 1.0);"
+                         "    gl_Position = projection * vec4(position, 0.0, 1.0);"
                          "    fColor = color;"
                          "    fTexCoord = texCoord;"
                          "}";
@@ -33,7 +32,6 @@ const int MAX_SPRITES = 5000;
 
 #define VCTBO 0   // vertices, colour, texture coordinates buffer object
 #define EBO   1     // element buffer object
-#define MBO   2     // model buffer object (for the model matrix of each sprite)
 
 SpriteBatcher::SpriteBatcher()
     : camera(NULL), vao(0), program(0), lastTexture(0), drawn(0)
@@ -52,7 +50,7 @@ SpriteBatcher::SpriteBatcher()
 
     // Create vertex array and prepare buffers for being updated >= once per frame
     glGenVertexArrays(1, &vao);
-    glGenBuffers(3, buffers);
+    glGenBuffers(2, buffers);
 
     glBindVertexArray(vao);
 
@@ -60,8 +58,6 @@ SpriteBatcher::SpriteBatcher()
     glBufferData(GL_ARRAY_BUFFER, 0, NULL, GL_DYNAMIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[EBO]);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, 0, NULL, GL_DYNAMIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, buffers[MBO]);
-    glBufferData(GL_ARRAY_BUFFER, 0, NULL, GL_DYNAMIC_DRAW);
     
     // Attributes
     glBindBuffer(GL_ARRAY_BUFFER, buffers[VCTBO]);
@@ -72,16 +68,6 @@ SpriteBatcher::SpriteBatcher()
     glEnableVertexAttribArray(2); // texture coordinates
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 
-    glBindBuffer(GL_ARRAY_BUFFER, buffers[MBO]);
-    glEnableVertexAttribArray(3); // model matrix
-    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
-    glEnableVertexAttribArray(4);
-    glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
-    glEnableVertexAttribArray(5);
-    glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
-    glEnableVertexAttribArray(6);
-    glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
-
     glBindVertexArray(0);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -91,20 +77,28 @@ SpriteBatcher::SpriteBatcher()
 SpriteBatcher::~SpriteBatcher()
 {
     glDeleteVertexArrays(1, &vao);
-    glDeleteBuffers(3, buffers);
+    glDeleteBuffers(2, buffers);
     glDeleteProgram(program);
 }
 
 void SpriteBatcher::begin()
 {
-    glEnable(GL_BLEND);
+    glUseProgram(program);
+    glBindVertexArray(vao);
+
+    // Clearing the buffers makes OpenGL happier
+    glBindBuffer(GL_ARRAY_BUFFER, buffers[VCTBO]);
+    glBufferData(GL_ARRAY_BUFFER, 0, NULL, GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[EBO]);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 0, NULL, GL_DYNAMIC_DRAW);
 }
 
 void SpriteBatcher::end()
 {
     render();
 
-    glDisable(GL_BLEND);
+    glBindVertexArray(0);
+    glUseProgram(0);
 }
 
 void SpriteBatcher::draw(Sprite* sprite)
@@ -123,13 +117,34 @@ void SpriteBatcher::draw(Sprite* sprite)
     int x, y, w, h, tW, tH;
     sprite->getTextureRectangle(&x, &y, &w, &h);
     sprite->getTextureDimensions(&tW, &tH);
+
+    // Transform the vertices
+    glm::mat4 model = sprite->getModelMatrix();
+    static const glm::vec2 positions[] =
+    {
+        { 0.0f, 0.0f },
+        { 1.0f, 0.0f },
+        { 0.0f, 1.0f },
+        { 1.0f, 1.0f }
+    };
+
+    float xv[4];
+    float yv[4];
+    for(int i = 0; i < 4; ++i)
+    {
+        glm::vec4 p(positions[i], 0.0f, 1.0f);
+        p = model * p;
+        xv[i] = p.x;
+        yv[i] = p.y;
+    }
+
     float _vertices[] =
     {
-        // x  y     r   g   b   a   u                      v
-        0.0f, 0.0f, rf, gf, bf, af,  x / (float)tW,        y / (float)tH,
-        1.0f, 0.0f, rf, gf, bf, af, (x + w) / (float)tW,   y / (float)tH,
-        0.0f, 1.0f, rf, gf, bf, af,  x / (float)tW,       (y + h) / (float)tH,
-        1.0f, 1.0f, rf, gf, bf, af, (x + w) / (float)tW,  (y + h) / (float)tH
+        // x   y      r   g   b   a   u                      v
+        xv[0], yv[0], rf, gf, bf, af,  x / (float)tW,        y / (float)tH,
+        xv[1], yv[1], rf, gf, bf, af, (x + w) / (float)tW,   y / (float)tH,
+        xv[2], yv[2], rf, gf, bf, af,  x / (float)tW,       (y + h) / (float)tH,
+        xv[3], yv[3], rf, gf, bf, af, (x + w) / (float)tW,  (y + h) / (float)tH
     };
 
     static const GLuint _indices[] = // Always the same
@@ -151,16 +166,6 @@ void SpriteBatcher::draw(Sprite* sprite)
         indices.push_back(_indices[e] + 4 * drawn);
     }
 
-    // Now add the model matrix for each vertex
-    // Other possibilities include:
-    // 1. Transform the vertices on the CPU
-    // 2. Send 'offset, scale, angle' vertices and create the model matrix in the vertex shader
-    glm::mat4 model = sprite->getModelMatrix();
-    modelMatrices.push_back(model);
-    modelMatrices.push_back(model);
-    modelMatrices.push_back(model);
-    modelMatrices.push_back(model);
-
     ++drawn;
     lastTexture = sprite->getTexture();
 }
@@ -177,9 +182,6 @@ void SpriteBatcher::render()
         return;
     }
 
-    glBindVertexArray(vao);
-    glUseProgram(program);
-
     // Send the vertices
     glBindBuffer(GL_ARRAY_BUFFER, buffers[VCTBO]);
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), &vertices[0], GL_DYNAMIC_DRAW);
@@ -187,11 +189,6 @@ void SpriteBatcher::render()
     // Send the indices
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[EBO]);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), &indices[0], GL_DYNAMIC_DRAW);
-
-    // Send the model matrices
-    glBindBuffer(GL_ARRAY_BUFFER, buffers[MBO]);
-    glBufferData(GL_ARRAY_BUFFER, modelMatrices.size() * sizeof(glm::mat4), &modelMatrices[0], GL_DYNAMIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     // Set the projection uniform
     glUniformMatrix4fv(glGetUniformLocation(program, "projection"), 1, GL_FALSE, glm::value_ptr(camera->getProjection()));
@@ -203,7 +200,9 @@ void SpriteBatcher::render()
     // Draw
     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 
-    glBindVertexArray(0);
-
     drawn = 0;
+
+    // Clear
+    vertices.clear();
+    indices.clear();
 }

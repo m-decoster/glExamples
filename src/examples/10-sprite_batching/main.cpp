@@ -34,10 +34,10 @@ int main(void)
         for(int j = 0; j < SQRT_NUM_SPRITES; ++j)
         {
             Sprite* s = new Sprite(texture, w, h);
-            s->setPosition(rand() % 640, rand() % 320, 0.0f);
+            s->setPosition(rand() % 640, rand() % 480, 0.0f);
             s->setScale(50.0f, 50.0f);
             s->setAngle((float)(rand() % 360));
-            s->setTextureRectangle(0, 0, w, h);
+            s->setTextureRectangle(rand() % (w - 10), rand() % (h - 10), 10, 10);
             sprites.push_back(s);
         }
     }
@@ -64,9 +64,6 @@ int main(void)
 
         glfwSwapBuffers(window);
         glfwPollEvents();
-
-        std::cout << glfwGetTime() << std::endl;
-        glfwSetTime(0.0);
     }
 
     // Cleanup
