@@ -4,7 +4,7 @@ INCLUDES=-Isrc/libs/
 LIBS=-Llib -lglfw3 -lSOIL -lassimp -lz -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo
 COMMON=src/examples/common/util.cpp src/examples/common/shader.cpp src/examples/common/camera.cpp
 
-all: hello_triangle hello_sprite hello_cube hello_heightmap hello_mesh render_to_texture cubemaps instancing particles sprite_batching
+all: hello_triangle hello_sprite hello_cube hello_heightmap hello_mesh render_to_texture cubemaps instancing particles sprite_batching morph_target_animation
 
 hello_triangle:
 	$(CC) $(INCLUDES) $(CFLAGS) src/examples/01-hello_triangle/main.cpp $(COMMON) -o bin/01-hello_triangle.out $(LIBS)
@@ -46,6 +46,11 @@ particles:
 sprite_batching:
 	$(CC) $(INCLUDES) $(CFLAGS) src/examples/10-sprite_batching/main.cpp src/examples/10-sprite_batching/sprite.cpp src/examples/10-sprite_batching/spritebatcher.cpp $(COMMON) -o bin/10-sprite_batching.out $(LIBS)
 	cp src/examples/10-sprite_batching/spritesheet.png bin/spritesheet.png
+
+morph_target_animation:
+	$(CC) $(INCLUDES) $(CFLAGS) src/examples/11-morph_target_animation/main.cpp $(COMMON) -o bin/11-morph_target_animation.out $(LIBS)
+	cp src/examples/11-morph_target_animation/*.obj bin/
+	cp src/examples/11-morph_target_animation/mta_texture.png bin/
 
 clean:
 	rm bin/*
