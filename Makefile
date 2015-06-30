@@ -49,8 +49,6 @@ sprite_batching:
 
 morph_target_animation:
 	$(CC) $(INCLUDES) $(CFLAGS) src/examples/11-morph_target_animation/main.cpp $(COMMON) -o bin/11-morph_target_animation.out $(LIBS)
-	cp src/examples/11-morph_target_animation/*.obj bin/
-	cp src/examples/11-morph_target_animation/mta_texture.png bin/
 
 clean:
 	rm bin/*
