@@ -220,4 +220,21 @@ but has more draw calls in a worst case scenario. It does not have the overhead 
 
 [Code](src/examples/10-sprite_batching)
 
-![particles](img/10-sprite_batching.tiff)
+![sprite_batching](img/10-sprite_batching.tiff)
+
+### Morph Target Animation
+
+*Level: intermediate*
+
+**Compile**: `make morph_target_animation`  
+**Run**: `cd bin; ./11-morph_target_animation.out`
+
+Morph Target Animation is one of the two popular methods used to animate 3D objects.
+It uses more memory than skeletal animation and is less flexible, but is very easy to implement
+and can be used for complex animations such as facial animation. This example focuses on the implementation
+of morph target animation and strips down any unnecessary components. It simply animates a growing and shrinking cube.  
+The methods used in this example can easily be updated to accomodate different meshes, textures, normals, etc.
+
+[Code](src/examples/11-morph-target-animation)
+
+![morph_target_animation](img/11-morph_target_animation.tiff)
