@@ -21,7 +21,7 @@ const char* VERTEX_SRC = "#version 330 core\n"
                          "uniform mat4 view;"
                          "uniform mat4 projection;"
                          "uniform float tween;" // used for linear interpolation between curPos and nextPos
-                         "out vec3 fTexcoord;"
+                         "out vec2 fTexcoord;"
                          "void main()"
                          "{"
                          "    fTexcoord = texcoord;"
@@ -30,7 +30,7 @@ const char* VERTEX_SRC = "#version 330 core\n"
                          "}";
 
 const char* FRAGMENT_SRC = "#version 330 core\n"
-                           "in vec3 fTexcoord;"
+                           "in vec2 fTexcoord;"
                            "uniform sampler2D diffuse;"
                            "out vec4 outputColor;"
                            "void main()"
