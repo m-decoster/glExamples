@@ -160,7 +160,6 @@ int main(void)
         -1.0f,  1.0f,  1.0f,
         -1.0f,  1.0f, -1.0f,
     };
-    // We create the animation from several obj files
 
     // Create the vao and buffer objects
     GLuint vao;
