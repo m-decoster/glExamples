@@ -235,6 +235,6 @@ and can be used for complex animations such as facial animation. This example fo
 of morph target animation and strips down any unnecessary components. It simply animates a growing and shrinking cube.  
 The methods used in this example can easily be updated to accomodate different meshes, textures, normals, etc.
 
-[Code](src/examples/11-morph-target-animation)
+[Code](src/examples/11-morph_target_animation)
 
 ![morph_target_animation](img/11-morph_target_animation.tiff)
