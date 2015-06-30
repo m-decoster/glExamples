@@ -72,6 +72,8 @@ To compile all examples, you can run `make` or `make all`.
     3. [Instancing](#instancing)
     4. [Particles](#particles)
     5. [Sprite Batching](#sprite-batching)
+3. Advanced
+    1. [Morph Target Animation](#morph-target-animation)
 
 ### Hello Triangle
 
