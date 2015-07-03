@@ -74,6 +74,7 @@ To compile all examples, you can run `make` or `make all`.
     5. [Sprite Batching](#sprite-batching)
 3. Advanced
     1. [Morph Target Animation](#morph-target-animation)
+    2. [Uniform Buffer Objects](#uniform-buffer-objects)
 
 ### Hello Triangle
 
@@ -226,7 +227,7 @@ but has more draw calls in a worst case scenario. It does not have the overhead 
 
 ### Morph Target Animation
 
-*Level: intermediate*
+*Level: advanced*
 
 **Compile**: `make morph_target_animation`  
 **Run**: `cd bin; ./11-morph_target_animation.out`
@@ -240,3 +241,18 @@ The methods used in this example can easily be updated to accomodate different m
 [Code](src/examples/11-morph_target_animation)
 
 ![morph_target_animation](img/11-morph_target_animation.tiff)
+
+### Uniform Buffer Objects
+
+*Level: advanced*
+
+**Compile**: `make uniform_buffer_objects`  
+**Run**: `cd bin; ./12-uniform_buffer_objects.out`
+
+Uniform Buffer Objects allow you to reuse uniforms easily between shader programs without having to add a lot of extra code.
+They also allow you to have much more uniforms. We render two cubes with different shader programs, reusing the
+projection and view uniform matrices.
+
+[Code](src/examples/12-uniform_buffer_objects)
+
+![uniform_buffer_objects](img/12-uniform_buffer_objects.tiff)
