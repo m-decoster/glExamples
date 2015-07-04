@@ -1,11 +1,11 @@
-#include "../util/common.h"
-#include "../util/shader.h"
-#include "../util/camera.h"
+#include "../common/util.h"
+#include "../common/shader.h"
+#include "../common/camera.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-const char* VERTEX_SRC = "version 330 core\n"
+const char* VERTEX_SRC = "#version 330 core\n"
                          "layout(location=0) in vec3 position;"
                          "layout(location=1) in vec3 normal;"
                          "layout(location=2) in vec2 texCoords;"
@@ -26,8 +26,8 @@ const char* VERTEX_SRC = "version 330 core\n"
                          "    fTexCoords = texCoords;"
                          "}";
 
-const char* FRAGMENT_SRC = "version 330 core\n"
-                           "#define NUM_POINT_LIGHTS 3"
+const char* FRAGMENT_SRC = "#version 330 core\n"
+                           "#define NUM_POINT_LIGHTS 3\n"
                            "struct Sun"
                            "{"
                            "    vec3 dir;"
@@ -45,11 +45,14 @@ const char* FRAGMENT_SRC = "version 330 core\n"
                            "};"
                            "in vec3 fNormal;"
                            "in vec3 fPosition;"
-                           "in vec3 fTexCoords;"
+                           "in vec2 fTexCoords;"
                            "out vec4 outputColor;"
+                           "layout(std140) uniform Light"
+                           "{"
+                           "    Sun sun;"
+                           "    PointLight pointLights[NUM_POINT_LIGHTS];"
+                           "};"
                            "uniform vec3 eye;"
-                           "uniform Sun sun;"
-                           "uniform PointLight pointLights[NUM_POINT_LIGHTS];"
                            "uniform sampler2D matDiffuse;"
                            "uniform sampler2D matSpecular;"
                            "float matShine;"
@@ -82,7 +85,7 @@ const char* FRAGMENT_SRC = "version 330 core\n"
                            "    vec3 result = dirLight(sun, normal, eyeDir);"
                            "    for(int i = 0; i < NUM_POINT_LIGHTS; ++i)"
                            "    {"
-                           "        result += pointLight(pointLights[i], normal, eyeDir, fPosition);"
+                           "        result += pointLight(pointLights[i], normal, fPosition, eyeDir);"
                            "    }"
                            "    outputColor = vec4(result, 1.0);"
                            "}";
@@ -96,9 +99,7 @@ int main(void)
         return -1;
     }
 
-    glm::mat4 proj = glm::perspective(glm::radians(45.0f), 640.0f / 480.0f, 0.1f, 1000.0f);
     glm::mat4 model;
-    glm::mat4 view = glm::translate(glm::mat4(), glm::vec3(0.0f, 0.0f, -4.0f));
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_FRAMEBUFFER_SRGB); // Gamma correction
@@ -183,15 +184,38 @@ int main(void)
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(GLfloat)));
     glBindVertexArray(0);
 
+    // Projection/View matrix ubo
     GLuint ubo;
     glGenBuffers(1, &ubo);
     glBindBuffer(GL_UNIFORM_BUFFER, ubo);
-    glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
+    glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), NULL, GL_STREAM_DRAW);
 
     GLuint pv_index = glGetUniformBlockIndex(program, "PV");   
     glUniformBlockBinding(program, pv_index, 0);
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, ubo);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+    // Light ubo
+    GLuint lightUbo;
+    glGenBuffers(1, &lightUbo);
+    glBindBuffer(GL_UNIFORM_BUFFER, lightUbo);
+    // We have static lights in this example so we can fill the uniform buffer once and be done with it
+    float bufferData[] =
+    {
+        // sunlight
+        /* dir */ -0.5f, -0.5f, -0.5f, 0.0f, /* ambient */ 0.2f, 0.2f, 0.2f, 0.0f, /* diffuse */ 0.7f, 0.2f, 0.2f, 0.0f, /* specular */ 0.5f, 0.5f, 0.5f, 0.0f,
+        // pointlight 0
+        /* pos */ 0.0f, 5.0f, 0.0f, 0.0f, /* attenuation */ 1.0f, 0.7f, 1.8f, 0.0f, /* ambient */ 0.3f, 0.1f, 0.1f, 0.0f, /* diffuse */ 0.3f, 1.0f, 0.2f, 0.0f, /* specular */ 0.8f, 0.6f, 0.3f, 0.0f,
+        // pointlight 1
+        /* pos */ 5.0f, 0.0f, 0.0f, 0.0f, /* attenuation */ 1.0f, 0.35f, 0.44f, 0.0f, /* ambient */ 0.3f, 0.1f, 0.1f, 0.0f, /* diffuse */ 0.7f, 0.5f, 0.2f, 0.0f, /* specular */ 0.8f, 0.6f, 0.3f, 0.0f,
+        // pointlight 2
+        /* pos */ 0.0f, -5.0f, 5.0f, 0.0f, /* attenuation */ 1.0f, 0.35f, 0.44f, 0.0f, /* ambient */ 0.3f, 0.1f, 0.1f, 0.0f, /* diffuse */ 0.7f, 0.5f, 0.2f, 0.0f,/* specular */ 0.8f, 0.6f, 0.3f, 0.0f
+    }; // Vec3: we add a padding float after each vec3
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(bufferData), bufferData, GL_STATIC_DRAW);
+    glBindBufferBase(GL_UNIFORM_BUFFER, 1, lightUbo);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    GLuint light_index = glGetUniformBlockIndex(program, "Light");
+    glUniformBlockBinding(program, light_index, 1);
 
     int w, h;
     GLuint diffuse = loadImage("diffuseCube.png", &w, &h, 0, false);
@@ -209,22 +233,28 @@ int main(void)
     glUniform1i(glGetUniformLocation(program, "matDiffuse"), 0);
     glUniform1i(glGetUniformLocation(program, "matSpecular"), 1);
     glUniform1f(glGetUniformLocation(program, "matShine"), 32.0f);
-    glUniform3fv(glGetUniformLocation(program, "eye"), glm::value_ptr(camera.getPosition()));
+    glUniform3fv(glGetUniformLocation(program, "eye"), 1, glm::value_ptr(camera.getPosition()));
 
-    // TODO: uniform buffer object for all of the lights
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-    glClearColor(0.75f, 0.75f, 0.75f, 1.0f);
-
+    // Fill the Projection matrix in the P/V ubo
     glBindBuffer(GL_UNIFORM_BUFFER, ubo);
-    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(proj));
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(camera.getProjection()));
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
     
     while(!glfwWindowShouldClose(window))
     {
+        if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        {
+            break;
+        }
+
+        updateCamera(640, 480, window);
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glBindBuffer(GL_UNIFORM_BUFFER, ubo);
-        glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
+        glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(camera.getView()));
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
         glBindVertexArray(vao);
