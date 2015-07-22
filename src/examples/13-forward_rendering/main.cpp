@@ -67,7 +67,7 @@ const char* FRAGMENT_SRC = "#version 330 core\n"
                            "    vec3 specular = sun.specular * spec * vec3(texture(matSpecular, fTexCoords));"
                            "    return ambient + diffuse + specular;"
                            "}"
-                           "vec3 pointLight(PointLight light, vec3 normal, vec3 eye, vec3 pos)"
+                           "vec3 pointLight(PointLight light, vec3 normal, vec3 pos, vec3 eye)"
                            "{"
                            "    vec3 dir = normalize(light.position - pos);"
                            "    float diff = max(dot(normal, dir), 0.0);"
@@ -207,7 +207,7 @@ int main(void)
         // sunlight
         /* dir */ -0.5f, -0.5f, -0.5f, 0.0f, /* ambient */ 0.2f, 0.2f, 0.2f, 0.0f, /* diffuse */ 0.7f, 0.2f, 0.2f, 0.0f, /* specular */ 0.5f, 0.5f, 0.5f, 0.0f,
         // pointlight 0
-        /* pos */ 0.0f, 5.0f, 0.0f, 0.0f, /* attenuation */ 1.0f, 0.7f, 1.8f, 0.0f, /* ambient */ 0.3f, 0.1f, 0.1f, 0.0f, /* diffuse */ 0.3f, 1.0f, 0.2f, 0.0f, /* specular */ 0.8f, 0.6f, 0.3f, 0.0f,
+        /* pos */ 0.0f, 5.0f, 0.0f, 0.0f, /* attenuation */ 1.0f, 0.7f, 1.8f, 0.0f, /* ambient */ 0.3f, 0.1f, 0.1f, 0.0f, /* diffuse */ 0.5f, 1.0f, 0.5f, 0.0f, /* specular */ 0.8f, 0.6f, 0.3f, 0.0f,
         // pointlight 1
         /* pos */ 5.0f, 0.0f, 0.0f, 0.0f, /* attenuation */ 1.0f, 0.35f, 0.44f, 0.0f, /* ambient */ 0.3f, 0.1f, 0.1f, 0.0f, /* diffuse */ 0.7f, 0.5f, 0.2f, 0.0f, /* specular */ 0.8f, 0.6f, 0.3f, 0.0f,
         // pointlight 2
@@ -235,7 +235,6 @@ int main(void)
     glUniform1i(glGetUniformLocation(program, "matDiffuse"), 0);
     glUniform1i(glGetUniformLocation(program, "matSpecular"), 1);
     glUniform1f(glGetUniformLocation(program, "matShine"), 32.0f);
-    glUniform3fv(glGetUniformLocation(program, "eye"), 1, glm::value_ptr(camera.getPosition()));
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
@@ -263,6 +262,7 @@ int main(void)
 
         glUseProgram(program);
 
+        glUniform3fv(glGetUniformLocation(program, "eye"), 1, glm::value_ptr(camera.getPosition()));
         glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_FALSE, glm::value_ptr(model));
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
