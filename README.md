@@ -75,6 +75,7 @@ To compile all examples, you can run `make` or `make all`.
 3. Advanced
     1. [Morph Target Animation](#morph-target-animation)
     2. [Uniform Buffer Objects](#uniform-buffer-objects)
+    3. [Forward Rendering](#forward-rendering)
 
 ### Hello Triangle
 
