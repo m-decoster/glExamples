@@ -256,3 +256,17 @@ projection and view uniform matrices.
 [Code](src/examples/12-uniform_buffer_objects)
 
 ![uniform_buffer_objects](img/12-uniform_buffer_objects.tiff)
+
+### Forward Rendering
+
+*Level: advanced*
+
+**Compile**: `make forward_rendering`  
+**Run**: `cd bin; ./13-forward_rendering.out`
+
+Forward Rendering is one popular technique of rendering lit 3D scenes. This example uses the Blinn-Phong shading model
+to render a lit cube with several lights.
+
+[Code](src/examples/13-forward_rendering)
+
+![forward_rendering](img/13-forward_rendering.tiff)
