@@ -4,7 +4,7 @@ INCLUDES=-Isrc/libs/
 LIBS=-Llib -lglfw3 -lSOIL -lassimp -lz -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo
 COMMON=src/examples/common/util.cpp src/examples/common/shader.cpp src/examples/common/camera.cpp
 
-all: hello_triangle hello_sprite hello_cube hello_heightmap hello_mesh render_to_texture cubemaps instancing particles sprite_batching morph_target_animation uniform_buffer_objects forward_rendering
+all: hello_triangle hello_sprite hello_cube hello_heightmap hello_mesh render_to_texture cubemaps instancing particles sprite_batching morph_target_animation uniform_buffer_objects forward_rendering shadows
 
 hello_triangle:
 	$(CC) $(INCLUDES) $(CFLAGS) src/examples/01-hello_triangle/main.cpp $(COMMON) -o bin/01-hello_triangle.out $(LIBS)
@@ -57,6 +57,10 @@ uniform_buffer_objects:
 forward_rendering:
 	$(CC) $(INCLUDES) $(CFLAGS) src/examples/13-forward_rendering/main.cpp $(COMMON) -o bin/13-forward_rendering.out $(LIBS)
 	cp src/examples/13-forward_rendering/*.png bin/
+
+shadows:
+	$(CC) $(INCLUDES) $(CFLAGS) src/examples/14-shadows/main.cpp $(COMMON) -o bin/14-shadows.out $(LIBS)
+	cp src/examples/14-shadows/*.png bin/
 
 clean:
 	rm bin/*
