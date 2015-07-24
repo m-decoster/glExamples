@@ -76,6 +76,7 @@ To compile all examples, you can run `make` or `make all`.
     1. [Morph Target Animation](#morph-target-animation)
     2. [Uniform Buffer Objects](#uniform-buffer-objects)
     3. [Forward Rendering](#forward-rendering)
+    4. [Shadows](#shadows)
 
 ### Hello Triangle
 
@@ -271,3 +272,17 @@ to render a lit cube with several lights.
 [Code](src/examples/13-forward_rendering)
 
 ![forward_rendering](img/13-forward_rendering.tiff)
+
+### Shadows
+
+*Level: advanced*
+
+**Compile**: `make shadows`
+**Run**: `cd bin; ./14-shadows.out`
+
+This is a simple example of how to do shadow mapping with percentage closer filtering for decent dynamic shadows. It only
+handles directional lights.
+
+[Code](src/examples/14-shadows)
+
+![shadows](img/14-shadows.tiff)

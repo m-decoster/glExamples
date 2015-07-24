@@ -67,16 +67,30 @@ const char* FRAGMENT_SRC = "#version 330 core\n"
                            "    float spec = pow(max(dot(normal, hwd), 0.0), matShine);"
                            "    vec3 ambient = 0.3 * color * vec3(texture(matDiffuse, fTexCoords));"
                            "    vec3 diffuse = color * diff * vec3(texture(matDiffuse, fTexCoords));"
-                           "    vec3 specular = 0.9 * spec * color;"
-                           "    return ambient + (1.0 - shdw) * (diffuse + specular);"
+                           "    vec3 specular = spec * color;"
+                           "    return ambient + shdw * (diffuse + specular);"
                            "}"
                            "float shadow(vec4 pos)" // NEW function
                            "{"
                            "    vec3 projCoords = pos.xyz / pos.w;"
                            "    projCoords = projCoords * 0.5 + 0.5;" // From [-1,1] to [0,1]
-                           "    float depth = texture(shadowMap, projCoords.xy).r;"
                            "    float curDepth = projCoords.z;"
-                           "    float shadow = curDepth > depth ? 1.0 : 0.0;"
+                           "    float bias = 0.005;"
+                           "    float shadow = 0.0;"
+                           "    vec2 texelSize = 1.0 / textureSize(shadowMap, 0);"
+                           "    for(int x = -1; x <= 1; ++x)"
+                           "    {"
+                           "        for(int y = -1; y <= 1; ++y)"
+                           "        {"
+                           "            float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;"
+                           "            shadow += curDepth - bias > pcfDepth ? 0.0 : 1.0;"
+                           "        }"
+                           "    }"
+                           "    shadow /= 9.0;"
+                           "    if(projCoords.z > 1.0)"
+                           "    {"
+                           "        shadow = 1.0;"
+                           "    }"
                            "    return shadow;"
                            "}"
                            "void main()"
@@ -91,7 +105,7 @@ const char* FRAGMENT_SRC = "#version 330 core\n"
 GLuint program, shadowProgram, vao, depthMap, depthMapFBO;
 glm::mat4 model, floorModel, lightSpace;
 Camera camera(CAMERA_PERSPECTIVE, 45.0f, 0.1f, 1000.0f, 640.0f, 480.0f);
-glm::vec3 lightPos(0.0f, 10.0f, 0.0f);
+glm::vec3 lightPos(2.0f, 2.0f, 2.0f);
 GLFWwindow* window;
 
 void shadowPass()
@@ -103,7 +117,7 @@ void shadowPass()
     glClear(GL_DEPTH_BUFFER_BIT);
 
     glm::mat4 lightProj, lightView;
-    lightProj = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 7.5f);
+    lightProj = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, -10.0f, 10.0f);
     lightView = glm::lookAt(lightPos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     lightSpace = lightProj * lightView;
 
@@ -131,8 +145,6 @@ void geomPass()
 
     glBindVertexArray(vao);
     glUseProgram(program);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, depthMap);
     glUniformMatrix4fv(glGetUniformLocation(program, "lightSpace"), 1, GL_FALSE, glm::value_ptr(lightSpace));
     glUniform3fv(glGetUniformLocation(program, "eye"), 1, glm::value_ptr(camera.getPosition()));
     glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_FALSE, glm::value_ptr(model));
@@ -245,12 +257,13 @@ int main(void)
     // Shadow map (depth map) fbo
     glGenFramebuffers(1, &depthMapFBO);  
     glGenTextures(1, &depthMap);
+    glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, depthMap);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_W, SHADOW_H, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
     glDrawBuffer(GL_NONE); // Don't write to the color buffer
@@ -275,9 +288,8 @@ int main(void)
         return -1;
     }
 
-    model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f));
     // The second cube is larger
-    floorModel = glm::scale(floorModel, glm::vec3(100.0f, 1.0f, 100.0f));
+    floorModel = glm::scale(floorModel, glm::vec3(100.0f, 0.5f, 100.0f));
     floorModel = glm::translate(floorModel, glm::vec3(0.0f, -5.0f, 0.0f));
 
     glUseProgram(program);
