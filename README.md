@@ -277,10 +277,10 @@ to render a lit cube with several lights.
 
 *Level: advanced*
 
-**Compile**: `make shadows`
+**Compile**: `make shadows`  
 **Run**: `cd bin; ./14-shadows.out`
 
-This is a simple example of how to do shadow mapping with percentage closer filtering for decent dynamic shadows. It only
+This is a simple example of how to do shadow mapping with percentage closer filtering for easy dynamic shadows. It only
 handles directional lights.
 
 [Code](src/examples/14-shadows)
