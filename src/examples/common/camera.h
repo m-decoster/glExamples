@@ -46,6 +46,7 @@ public:
      * Perpendicular to the direction
      */
     glm::vec3 getRightVector() const;
+    glm::vec3 getUpVector() const;
 private:
     CameraType type;
     glm::mat4 projection;
@@ -53,8 +54,6 @@ private:
     glm::vec3 position;
     glm::vec2 angle;
     float width, height, zNear, zFar, fov;
-
-    glm::vec3 getUpVector() const;
 };
 
 #endif
