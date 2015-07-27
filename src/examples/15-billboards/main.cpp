@@ -38,13 +38,25 @@ const char* VERTEX_BB_SRC = "#version 330 core\n"
                             "uniform vec2 size;"
                             "uniform mat4 view;"
                             "uniform mat4 proj;"
+                            "uniform bool fixedSize;"
+                            "uniform vec3 camRight;"
+                            "uniform vec3 camUp;"
                             "out vec2 fTexCoords;"
                             "void main()"
                             "{"
-                            "    vec3 vertexPos = center;"
-                            "    gl_Position = proj * view * vec4(vertexPos, 1.0);"
-                            "    gl_Position /= gl_Position.w;"
-                            "    gl_Position.xy += position.xy * size;"
+                            "    if(!fixedSize)"
+                            "    {"
+                            "        vec3 vertexPos = center + camRight * position.x * size.x + camUp * position.y * size.y;"
+                            "        gl_Position = proj * view * vec4(vertexPos, 1.0);"
+                            "        gl_Position /= gl_Position.w;"
+                            "    }"
+                            "    else"
+                            "    {"
+                            "        vec3 vertexPos = center;"
+                            "        gl_Position = proj * view * vec4(vertexPos, 1.0);"
+                            "        gl_Position /= gl_Position.w;"
+                            "        gl_Position.xy += position.xy * size;"
+                            "    }"
                             "    fTexCoords = position + vec2(0.5, 0.5);"
                             "}";
 
@@ -223,6 +235,9 @@ int main(void)
         glUniformMatrix4fv(viewUL, 1, GL_FALSE, glm::value_ptr(camera.getView()));
         projUL = glGetUniformLocation(billboardProgram, "proj");
         glUniformMatrix4fv(projUL, 1, GL_FALSE, glm::value_ptr(camera.getProjection()));
+        glUniform1i(glGetUniformLocation(billboardProgram, "fixedSize"), 0);
+        glUniform3f(glGetUniformLocation(billboardProgram, "camRight"), camera.getRightVector().x, camera.getRightVector().y, camera.getRightVector().z);
+        glUniform3f(glGetUniformLocation(billboardProgram, "camUp"), camera.getUpVector().x, camera.getUpVector().y, camera.getUpVector().z);
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 

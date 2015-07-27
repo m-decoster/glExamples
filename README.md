@@ -295,7 +295,7 @@ handles directional lights.
 **Compile**: `make billboards`  
 **Run**: `cd bin; ./15-billboards.out`
 
-This example shows how to render billboards (2D sprites that are always oriented towards the camera) with a fixed size.
+This example shows how to render billboards (2D sprites that are always oriented towards the camera) with a fixed size, or a size that changes depending on the distance between the object and the camera.
 
 [Code](src/examples/15-billboards)
 
