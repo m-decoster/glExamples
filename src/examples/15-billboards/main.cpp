@@ -42,27 +42,12 @@ const char* VERTEX_BB_SRC = "#version 330 core\n"
                             "uniform mat4 proj;"
                             "out vec2 fTexCoords;"
                             "void main()"
-                            /*"{"
+                            "{"
                             "    vec3 right_worldSpace = (vec4(camRight, 1.0) * inverse(view)).xyz;"
                             "    vec3 up_worldSpace = (vec4(camUp, 1.0) * inverse(view)).xyz;"
-                            "    vec3 vertexPos = center + right_worldSpace * position.x * size.x + up_worldSpace * position.y * size.y;"
+                            "    vec3 vertexPos = center + camRight * position.x * size.x + camUp * position.y * size.y;"
                             "    gl_Position = proj * view * vec4(vertexPos, 1.0);"
-                            "    fTexCoords = position + vec2(0.5, 0.5);"*/
-                            "{"
-                            "    mat4 new_view = view;"
-                            "    new_view[0][0] = 1.0;"
-                            "    new_view[0][1] = 0.0;"
-                            "    new_view[0][2] = 0.0;"
-                            "    new_view[1][0] = 0.0;"
-                            "    new_view[1][1] = 1.0;"
-                            "    new_view[1][2] = 0.0;"
-                            "    new_view[2][0] = 0.0;"
-                            "    new_view[2][1] = 0.0;"
-                            "    new_view[2][2] = 0.0;"
-                            "    vec3 right_worldSpace = (vec4(camRight, 1.0) * inverse(new_view)).xyz;"
-                            "    vec3 up_worldSpace = (vec4(camUp, 1.0) * inverse(new_view)).xyz;"
-                            "    vec3 vertexPos = center + right_worldSpace * position.x * size.x + up_worldSpace * position.y * size.y;"
-                            "    gl_Position = proj * view * vec4(vertexPos, 1.0);"
+                            "    gl_Position /= gl_Position.w;"
                             "    fTexCoords = position + vec2(0.5, 0.5);"
                             "}";
 
@@ -225,8 +210,6 @@ int main(void)
         glBindVertexArray(vao);
 
         GLint modelUL = glGetUniformLocation(program, "model");
-        glUniform3f(glGetUniformLocation(billboardProgram, "camRight"), camera.getRightVector().x, camera.getRightVector().y, camera.getRightVector().z);
-        glUniform3f(glGetUniformLocation(billboardProgram, "camUp"), camera.getUpVector().x, camera.getUpVector().y, camera.getUpVector().z);
         glUniformMatrix4fv(modelUL, 1, GL_FALSE, glm::value_ptr(model));
         GLint viewUL = glGetUniformLocation(program, "view");
         glUniformMatrix4fv(viewUL, 1, GL_FALSE, glm::value_ptr(camera.getView()));
@@ -243,6 +226,8 @@ int main(void)
         glUniformMatrix4fv(viewUL, 1, GL_FALSE, glm::value_ptr(camera.getView()));
         projUL = glGetUniformLocation(billboardProgram, "proj");
         glUniformMatrix4fv(projUL, 1, GL_FALSE, glm::value_ptr(camera.getProjection()));
+        glUniform3f(glGetUniformLocation(billboardProgram, "camRight"), camera.getRightVector().x, camera.getRightVector().y, camera.getRightVector().z);
+        glUniform3f(glGetUniformLocation(billboardProgram, "camUp"), camera.getUpVector().x, camera.getUpVector().y, camera.getUpVector().z);
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
