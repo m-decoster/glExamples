@@ -77,6 +77,7 @@ To compile all examples, you can run `make` or `make all`.
     2. [Uniform Buffer Objects](#uniform-buffer-objects)
     3. [Forward Rendering](#forward-rendering)
     4. [Shadows](#shadows)
+    5. [Billboards](#billboards)
 
 ### Hello Triangle
 
@@ -286,3 +287,16 @@ handles directional lights.
 [Code](src/examples/14-shadows)
 
 ![shadows](img/14-shadows.tiff)
+
+### Billboards
+
+*Level: advanced*
+
+**Compile**: `make billboards`  
+**Run**: `cd bin; ./15-billboards.out`
+
+This example shows how to render billboards (2D sprites that are always oriented towards the camera) with a fixed size.
+
+[Code](src/examples/15-billboards)
+
+![billboards](img/15-billboards.tiff)

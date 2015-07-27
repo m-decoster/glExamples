@@ -34,8 +34,6 @@ const char* FRAGMENT_SRC = "#version 330 core\n"
 
 const char* VERTEX_BB_SRC = "#version 330 core\n"
                             "layout(location=0) in vec2 position;"
-                            "uniform vec3 camRight;"
-                            "uniform vec3 camUp;"
                             "uniform vec3 center;"
                             "uniform vec2 size;"
                             "uniform mat4 view;"
@@ -43,11 +41,10 @@ const char* VERTEX_BB_SRC = "#version 330 core\n"
                             "out vec2 fTexCoords;"
                             "void main()"
                             "{"
-                            "    vec3 right_worldSpace = (vec4(camRight, 1.0) * inverse(view)).xyz;"
-                            "    vec3 up_worldSpace = (vec4(camUp, 1.0) * inverse(view)).xyz;"
-                            "    vec3 vertexPos = center + camRight * position.x * size.x + camUp * position.y * size.y;"
+                            "    vec3 vertexPos = center;"
                             "    gl_Position = proj * view * vec4(vertexPos, 1.0);"
                             "    gl_Position /= gl_Position.w;"
+                            "    gl_Position.xy += position.xy * size;"
                             "    fTexCoords = position + vec2(0.5, 0.5);"
                             "}";
 
@@ -226,8 +223,6 @@ int main(void)
         glUniformMatrix4fv(viewUL, 1, GL_FALSE, glm::value_ptr(camera.getView()));
         projUL = glGetUniformLocation(billboardProgram, "proj");
         glUniformMatrix4fv(projUL, 1, GL_FALSE, glm::value_ptr(camera.getProjection()));
-        glUniform3f(glGetUniformLocation(billboardProgram, "camRight"), camera.getRightVector().x, camera.getRightVector().y, camera.getRightVector().z);
-        glUniform3f(glGetUniformLocation(billboardProgram, "camUp"), camera.getUpVector().x, camera.getUpVector().y, camera.getUpVector().z);
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
