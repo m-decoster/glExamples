@@ -44,7 +44,7 @@ const char* VERTEX_BB_SRC = "#version 330 core\n"
                             "out vec2 fTexCoords;"
                             "void main()"
                             "{"
-                            "    if(!fixedSize)"
+                            "    if(!fixedSize)" // In a real application, you should probably create two different shaders to avoid branching!
                             "    {"
                             "        vec3 vertexPos = center + camRight * position.x * size.x + camUp * position.y * size.y;"
                             "        gl_Position = proj * view * vec4(vertexPos, 1.0);"
