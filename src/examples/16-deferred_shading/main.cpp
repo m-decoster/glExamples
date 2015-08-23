@@ -20,9 +20,11 @@ const char* VERTEX_GEOM_SRC = "#version 330 core\n"
                               "layout(location=3) in mat4 model_inst;"
                               "uniform mat4 view;"
                               "uniform mat4 projection;"
+                              "uniform float specularPower;"
                               "out vec3 fPosition;"
                               "out vec3 fNormal;"
                               "out vec2 fTexCoord;"
+                              "out float fSpecularPower;"
                               "void maint()"
                               "{"
                               "    vec4 wP = model_inst * vec4(position, 1.0);"
@@ -36,9 +38,9 @@ const char* FRAGMENT_GEOM_SRC = "#version 330 core\n"
                                 "in vec3 fPosition;"
                                 "in vec3 fNormal;"
                                 "in vec2 fTexCoord;"
+                                "in float fSpecularPower;"
                                 "uniform sampler2D diffuse;"
                                 "uniform sampler2D specular;"
-                                "uniform float specularPower;"
                                 "layout(location=0) out vec3 g_position;"
                                 "layout(location=1) out vec4 g_normal_spec_pow;" // rgb: normal, a: specular power
                                 "layout(location=2) out vec4 g_albedo_spec;" // rgb: albedo, a: spec
@@ -46,7 +48,7 @@ const char* FRAGMENT_GEOM_SRC = "#version 330 core\n"
                                 "{"
                                 "    g_position = fPosition;"
                                 "    g_normal_spec_pow.rgb = normalize(fNormal);"
-                                "    g_normal_spec_pow.a = specularPower;"
+                                "    g_normal_spec_pow.a = fSpecularPower;"
                                 "    g_albedo_spec = texture(diffuse, fTexCoord);"
                                 "    g_albedo_spec.a = texture(specular, fTexCoord).r;"
                                 "}";
@@ -132,7 +134,7 @@ struct GBuffer
         // Create a texture for the normal buffer
         glGenTextures(1, &normal);
         glBindTexture(GL_TEXTURE_2D, normal);
-        gTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, WIDTH, HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+        gTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WIDTH, HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         // Bind the normal buffer to the framebuffer
@@ -141,7 +143,7 @@ struct GBuffer
         // Create a texture for the color buffer
         glGenTextures(1, &color);
         glBindTexture(GL_TEXTURE_2D, color);
-        gTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, WIDTH, HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+        gTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WIDTH, HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         // Bind the color buffer to the framebuffer
@@ -275,6 +277,16 @@ int main(void)
 
     mesh.setInstances(NUM_ASTEROIDS, models);
 
+    GBuffer gBuffer;
+
+    glUseProgram(lightProgram);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, gBuffer.position);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, gBuffer.normal);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, gBuffer.color);
+
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
     while(!glfwWindowShouldClose(window))
@@ -286,17 +298,33 @@ int main(void)
 
         updateCamera(WIDTH, HEIGHT, window);
 
+        // GEOMETRY PASS
+        glBindFrameBuffer(GL_FRAMEBUFFER, gBuffer.buffer);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // TODO: GEOM PASS + LIGHT PASS
-        // Don't forget to set the view and projection uniform, and to call mesh.render();
+        glm::mat4 proj = camera.getProjection();
+        glm::mat4 view = camera.getView();
+        glUseProgram(geomProgram);
+        glUniformMatrix4fv(glGetUniformLocation(geomProgram, "projection"), 1, GL_FALSE, glm::value_ptr(proj));
+        glUniformMatrix4fv(glGetUniformLocation(geomProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
+        glUniform1f(glGetUniformLocation(geomProgram, "specularPower"), 16.0f);
+        mesh.render();
+        
+        // LIGHT PASS
+        glBindFrameBuffer(GL_FRAMEBUFFER, 0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glUseProgram(lightProgram); 
+        glUniform3fv(glGetUniformLocation(program, "eye"), 1, glm::value_ptr(camera.getPosition()));
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
     // Clean up
-    glDeleteTextures(1, &texture);
+    glDeleteTextures(1, &textureDiff);
+    glDeleteTextures(1, &textureSpec);
+    glDeleteProgram(geomProgram);
+    glDeleteProgram(lightProgram);
 
     glfwTerminate();
     return 0;
