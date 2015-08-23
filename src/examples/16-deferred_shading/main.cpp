@@ -12,6 +12,98 @@
 #define NUM_ASTEROIDS 2000
 #define SEED 1993
 
+const char* VERTEX_GEOM_SRC = "#version 330 core\n"
+                              "layout(location=0) in vec3 position;"
+                              "layout(location=1) in vec3 normal;" // TODO: make sure mesh.cpp is correct
+                              "layout(location=2) in vec2 texCoord;" // TODO: make sure mesh.cpp is correct
+                              "layout(location=3) in mat4 model_inst;" // TODO: make sure mesh.cpp is correct
+                              "uniform mat4 view;"
+                              "uniform mat4 projection;"
+                              "out vec3 fPosition;"
+                              "out vec3 fNormal;"
+                              "out vec2 fTexCoord;"
+                              "void maint()"
+                              "{"
+                              "    vec4 wP = model_inst * vec4(position, 1.0);"
+                              "    fPosition = wP.xyz;"
+                              "    gl_Position = projection * view * wP;"
+                              "    fNormal = transpose(inverse(mat3(model_inst))) * normal;"
+                              "    fTexCoord = texCoord;"
+                              "}";
+
+const char* FRAGMENT_GEOM_SRC = "#version 330 core\n"
+                                "in vec3 fPosition;"
+                                "in vec3 fNormal;"
+                                "in vec2 fTexCoord;"
+                                "uniform sampler2D diffuse;"
+                                "uniform sampler2D specular;"
+                                "layout(location=0) out vec3 g_position;"
+                                "layout(location=1) out vec3 g_normal;"
+                                "layout(location=2) out vec4 g_albedo_spec;" // rgb: albedo, a: spec
+                                "void main()"
+                                "{"
+                                "    g_position = fPosition;"
+                                "    g_normal = normalize(fNormal);"
+                                "    g_albedo_spec = texture(diffuse, fTexCoord);"
+                                "    g_albedo_spec.a = texture(specular, fTexCoord).r;"
+                                "}";
+
+const char* VERTEX_LIGHT_SRC = "#version 330 core\n"
+                               "layout(location=0) in vec2 position;"
+                               "layout(location=1) in vec2 texCoord;"
+                               "out vec2 fTexCoord;"
+                               "void main()"
+                               "{"
+                               "    gl_Position = vec4(position, 0.0, 1.0);"
+                               "    fTexCoord = texCoord;"
+                               "}";
+
+const char* FRAGMENT_LIGHT_SRC = "#version 330 core\n"
+                                 "#define NUM_POINT_LIGHTS 32\n"
+                                 "#define SPECULAR_POWER 32.0\n"
+                                 "struct PointLight"
+                                 "{"
+                                 "    vec3 position;"
+                                 "    vec3 att;" // x = constant, y = linear, z = quadratic
+                                 "    vec3 ambient;"
+                                 "    vec3 diffuse;"
+                                 "    vec3 specular;"
+                                 "};"
+                                 "in vec2 fTexCoord;"
+                                 "uniform PointLight lights[NUM_POINT_LIGHTS];"
+                                 "uniform vec3 eye;"
+                                 "uniform sampler2D g_position;"
+                                 "uniform sampler2D g_normal;"
+                                 "uniform sampler2D g_albedo_spec;"
+                                 "out vec4 outputColor;"
+                                 "vec3 pointLight(PointLight light, vec3 normal, vec3 pos, vec3 eye, vec3 albedo, float pSpecular)"
+                                 "{"
+                                 "    vec3 dir = normalize(light.position - pos);"
+                                 "    vec3 ambient = albedo * light.ambient;"
+                                 "    vec3 diffuse = max(dot(normal, dir), 0.0) * albedo * light.diffuse;"
+                                 "    vec3 hwd = normalize(dir + eye);"
+                                 "    float spec = pow(max(dot(normal, hwd), 0.0), SPECULAR_POWER);"
+                                 "    vec3 specular = light.specular * spec * pSpecular;"
+                                 "    float dist = length(light.position - pos);"
+                                 "    float attenuation = 1.0f / (light.att.x + light.att.y * dist + light.att.z * dist * dist);"
+                                 "    return (ambient + diffuse + specular) * attenuation;"
+                                 "}"
+                                 "void main()"
+                                 "{"
+                                 "    vec3 fPosition = texture(g_position, fTexCoord).rgb;"
+                                 "    vec3 fNormal = texture(g_normal, fTexCoord).rgb;"
+                                 "    vec3 albedo = texture(g_albedo_spec, fTexCoord).rgb;"
+                                 "    float specular = texture(g_albedo_spec, fTexCoord).a;"
+                                 "    vec3 eyeDir = normalize(eye - fPosition);"
+                                 "    vec3 result;"
+                                 "    for(int i = 0; i < NUM_POINT_LIGHTS; ++i)"
+                                 "    {"
+                                 "       result += pointLight(lights[i], fNormal, fPosition, eyeDir);"
+                                 "    }"
+                                 "    outputColor = vec4(result, 1.0);"
+                                 "}";
+
+
 /*
  * Multiple render targets!
  * We create a frame buffer with several GL_COLOR_ATTACHMENTs,
@@ -107,6 +199,13 @@ int main(void)
     Camera camera(CAMERA_PERSPECTIVE, 45.0f, 0.1f, 1000.0f, (float)WIDTH, (float)HEIGHT);
     setCamera(&camera);
 
+    GLuint geomProgram, lightProgram;
+    {
+        // Geometry pass program
+    }
+    {
+        // Light pass program
+    }
     /*GLuint program;
     {
         GLuint vertex = createShader(VERTEX_SRC, GL_VERTEX_SHADER);
@@ -164,6 +263,7 @@ int main(void)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // TODO: GEOM PASS + LIGHT PASS
+        // Don't forget to set the view and projection uniform, and to call mesh.render();
 
         glfwSwapBuffers(window);
         glfwPollEvents();
