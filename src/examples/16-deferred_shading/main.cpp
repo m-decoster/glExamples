@@ -10,13 +10,14 @@
 #define WIDTH 640
 #define HEIGHT 480
 #define NUM_ASTEROIDS 2000
+#define NUM_POINT_LIGHTS 32
 #define SEED 1993
 
 const char* VERTEX_GEOM_SRC = "#version 330 core\n"
                               "layout(location=0) in vec3 position;"
-                              "layout(location=1) in vec3 normal;" // TODO: make sure mesh.cpp is correct
-                              "layout(location=2) in vec2 texCoord;" // TODO: make sure mesh.cpp is correct
-                              "layout(location=3) in mat4 model_inst;" // TODO: make sure mesh.cpp is correct
+                              "layout(location=1) in vec3 normal;"
+                              "layout(location=2) in vec2 texCoord;"
+                              "layout(location=3) in mat4 model_inst;"
                               "uniform mat4 view;"
                               "uniform mat4 projection;"
                               "out vec3 fPosition;"
@@ -204,22 +205,45 @@ int main(void)
     GLuint geomProgram, lightProgram;
     {
         // Geometry pass program
+        GLuint vertex = createShader(VERTEX_GEOM_SRC, GL_VERTEX_SHADER);
+        GLuint fragment = createShader(FRAGMENT_GEOM_SRC, GL_VERTEX_SHADER);
+        geomProgram = createShaderProgram(vertex, fragment);
+        linkShader(geomProgram);
+        validateShader(geomProgram);
+        glDetachShader(geomProgram, vertex);
+        glDeleteShader(vertex);
+        glDetachShader(geomProgram, fragment);
+        glDeleteShader(fragment);
     }
     {
         // Light pass program
-    }
-    /*GLuint program;
-    {
-        GLuint vertex = createShader(VERTEX_SRC, GL_VERTEX_SHADER);
-        GLuint fragment = createShader(FRAGMENT_SRC, GL_FRAGMENT_SHADER);
-        program = createShaderProgram(vertex, fragment);
-        linkShader(program);
-        validateShader(program);
-        glDetachShader(program, vertex);
+        GLuint vertex = createShader(VERTEX_LIGHT_SRC, GL_VERTEX_SHADER);
+        GLuint fragment = createShader(FRAGMENT_LIGHT_SRC, GL_VERTEX_SHADER);
+        lightProgram = createShaderProgram(vertex, fragment);
+        linkShader(lightProgram);
+        validateShader(lightProgram);
+        glDetachShader(lightProgram, vertex);
         glDeleteShader(vertex);
-        glDetachShader(program, fragment);
+        glDetachShader(lightProgram, fragment);
         glDeleteShader(fragment);
-    }*/ // TODO
+    }
+
+    // Load the diffuse and specular texture
+    // TODO: seperate specular texture
+    glUseProgram(geomProgram);
+    int w, h;
+    GLuint textureDiff = loadImage("asteroid.png", &w, &h, 0, false); // GL_TEXTURE0
+    if(!textureDiff)
+    {
+        return -1;
+    }
+    glUniform1i(glGetUniformLocation(geomProgram, "diffuse"), 0); // GL_TEXTURE0
+    GLuint textureSpec = loadImage("asteroid.png", &w, &h, 1, false); // GL_TEXTURE1
+    if(!textureSpec)
+    {
+        return -1;
+    }
+    glUniform1i(glGetUniformLocation(geomProgram, "specular"), 1); // GL_TEXTURE1
 
     Mesh mesh;
     if(!mesh.load("asteroid.obj"))
