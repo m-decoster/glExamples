@@ -69,6 +69,7 @@ billboards:
 deferred_shading:
 	$(CC) $(INCLUDES) $(CFLAGS) src/examples/16-deferred_shading/main.cpp $(COMMON) -o bin/16-deferred_shading.out $(LIBS)
 	cp src/examples/16-deferred_shading/*.png bin/
+	cp src/examples/16-deferred_shading/*.obj bin/
 
 clean:
 	rm bin/*

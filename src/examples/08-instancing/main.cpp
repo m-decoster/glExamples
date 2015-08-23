@@ -74,6 +74,7 @@ int main(void)
     if(!mesh.load("asteroid.obj"))
     {
         std::cerr << "Could not load mesh" << std::endl;
+        return -1;
     }
 
     // Set random positions for the asteroids
