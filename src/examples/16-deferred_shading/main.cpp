@@ -24,25 +24,26 @@ const char* VERTEX_GEOM_SRC = "#version 330 core\n"
                               "out vec3 fNormal;"
                               "out vec2 fTexCoord;"
                               "out float fSpecularPower;"
-                              "void maint()"
+                              "void main()"
                               "{"
                               "    vec4 wP = model_inst * vec4(position, 1.0);"
                               "    fPosition = wP.xyz;"
                               "    gl_Position = projection * view * wP;"
                               "    fNormal = transpose(inverse(mat3(model_inst))) * normal;"
                               "    fTexCoord = texCoord;"
+                              "    fSpecularPower = specularPower;"
                               "}";
 
 const char* FRAGMENT_GEOM_SRC = "#version 330 core\n"
+                                "layout(location=0) out vec3 g_position;"
+                                "layout(location=1) out vec4 g_normal_spec_pow;" // rgb: normal, a: specular power
+                                "layout(location=2) out vec4 g_albedo_spec;" // rgb: albedo, a: spec
                                 "in vec3 fPosition;"
                                 "in vec3 fNormal;"
                                 "in vec2 fTexCoord;"
                                 "in float fSpecularPower;"
                                 "uniform sampler2D diffuse;"
                                 "uniform sampler2D specular;"
-                                "layout(location=0) out vec3 g_position;"
-                                "layout(location=1) out vec4 g_normal_spec_pow;" // rgb: normal, a: specular power
-                                "layout(location=2) out vec4 g_albedo_spec;" // rgb: albedo, a: spec
                                 "void main()"
                                 "{"
                                 "    g_position = fPosition;"
@@ -237,7 +238,7 @@ int main(void)
     {
         // Geometry pass program
         GLuint vertex = createShader(VERTEX_GEOM_SRC, GL_VERTEX_SHADER);
-        GLuint fragment = createShader(FRAGMENT_GEOM_SRC, GL_VERTEX_SHADER);
+        GLuint fragment = createShader(FRAGMENT_GEOM_SRC, GL_FRAGMENT_SHADER);
         geomProgram = createShaderProgram(vertex, fragment);
         linkShader(geomProgram);
         validateShader(geomProgram);
@@ -249,7 +250,7 @@ int main(void)
     {
         // Light pass program
         GLuint vertex = createShader(VERTEX_LIGHT_SRC, GL_VERTEX_SHADER);
-        GLuint fragment = createShader(FRAGMENT_LIGHT_SRC, GL_VERTEX_SHADER);
+        GLuint fragment = createShader(FRAGMENT_LIGHT_SRC, GL_FRAGMENT_SHADER);
         lightProgram = createShaderProgram(vertex, fragment);
         linkShader(lightProgram);
         validateShader(lightProgram);
