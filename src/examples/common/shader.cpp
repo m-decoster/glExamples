@@ -48,34 +48,8 @@ bool linkShader(GLuint program)
     return true;
 }
 
+// Still here for backwards compatibility
 bool validateShader(GLuint program)
 {
-    // OS X needs to have a vao bound before validating programs
-    // I am not sure why
-    GLuint vao;
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-
-    // Validate the program (some tutorials don't show this but it's best practice)
-    glValidateProgram(program);
-    int status;
-    glGetProgramiv(program, GL_VALIDATE_STATUS, &status);
-    if(!status)
-    {
-        std::cerr << "Shader validation failed: ";
-        char log[512];
-        glGetProgramInfoLog(program, 512, NULL, log);
-        std::cerr << log << std::endl;
-
-        glBindVertexArray(0);
-        glDeleteVertexArrays(1, &vao);
-
-        return false;
-    }
-
-    // Unbind the vao because we no longer need it
-    glBindVertexArray(0);
-    glDeleteVertexArrays(1, &vao);
-
     return true;
 }
