@@ -66,6 +66,7 @@ To compile all examples, you can run `make` or `make all`.
     3. [Hello Cube](#hello-cube)
     4. [Hello Heightmap](#hello-heightmap)
     5. [Hello Mesh](#hello-mesh)
+    6. [Transparency](#transparency)
 2. Intermediate
     1. [Render To Texture](#render-to-texture)
     2. [Cubemaps](#cubemaps)
@@ -153,6 +154,20 @@ a `Mesh` class. We will be making changes to these classes in later examples if 
 [Code](src/examples/05-hello_mesh)
 
 ![hello mesh](img/05-hello_mesh.tiff)
+
+### Transparency
+
+*Level: beginner*
+
+**Compile**: `make transparency`
+**Run**: `cd bin; ./17-transparency.out`
+
+This examples shows how to use blending to render transparent objects, by sorting them back-to-front.
+This is just one way to render transparent objects.
+
+[Code](src/examples/17-transparency)
+
+![transparency](img/16-transparency.tiff)
 
 ### Render To Texture
 
