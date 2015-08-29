@@ -167,7 +167,7 @@ This is just one way to render transparent objects.
 
 [Code](src/examples/17-transparency)
 
-![transparency](img/16-transparency.tiff)
+![transparency](img/17-transparency.tiff)
 
 ### Render To Texture
 
