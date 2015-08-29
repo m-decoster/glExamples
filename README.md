@@ -159,7 +159,7 @@ a `Mesh` class. We will be making changes to these classes in later examples if 
 
 *Level: beginner*
 
-**Compile**: `make transparency`
+**Compile**: `make transparency`  
 **Run**: `cd bin; ./17-transparency.out`
 
 This examples shows how to use blending to render transparent objects, by sorting them back-to-front.
