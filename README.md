@@ -78,6 +78,8 @@ To compile all examples, you can run `make` or `make all`.
     3. [Forward Rendering](#forward-rendering)
     4. [Shadows](#shadows)
     5. [Billboards](#billboards)
+4. Expert
+    1. [Deferred Shading](#deferred-shading)
 
 ### Hello Triangle
 
@@ -300,3 +302,17 @@ This example shows how to render billboards (2D sprites that are always oriented
 [Code](src/examples/15-billboards)
 
 ![billboards](img/15-billboards.tiff)
+
+### Deferred Shading
+
+*Level: expert*
+
+**Compile**: `make deferred_shading`  
+**Run**: `cd bin; ./16-deferred_shading.out`
+
+This example shows how to render to multiple textures in a single framebuffer at a time and use this to optimize the rendering of many lights. Other optimizations not included are tile based
+deferred rendering, which can speed up rendering even more.
+
+[Code](src/examples/16-deferred_shading)
+
+![deferred_shading](img/16-deferred_shading.tiff)
