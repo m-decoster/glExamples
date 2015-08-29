@@ -1,7 +1,6 @@
 #include "../common/util.h"
 #include "../common/shader.h"
 #include "../common/camera.h"
-#include "material.h"
 #include "mesh.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -125,7 +124,7 @@ struct GBuffer
         // Create a texture for the position buffer
         glGenTextures(1, &position);
         glBindTexture(GL_TEXTURE_2D, position);
-        gTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, WIDTH, HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, WIDTH, HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         // Bind the position buffer to the framebuffer
@@ -134,7 +133,7 @@ struct GBuffer
         // Create a texture for the normal buffer
         glGenTextures(1, &normal);
         glBindTexture(GL_TEXTURE_2D, normal);
-        gTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WIDTH, HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WIDTH, HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         // Bind the normal buffer to the framebuffer
@@ -143,7 +142,7 @@ struct GBuffer
         // Create a texture for the color buffer
         glGenTextures(1, &color);
         glBindTexture(GL_TEXTURE_2D, color);
-        gTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WIDTH, HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WIDTH, HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         // Bind the color buffer to the framebuffer
@@ -160,7 +159,7 @@ struct GBuffer
 
         // Create a depth buffer
         glGenRenderbuffers(1, &depth);
-        glBindRenderBuffer(GL_RENDERBUFFER, depth);
+        glBindRenderbuffer(GL_RENDERBUFFER, depth);
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, WIDTH, HEIGHT);
         // Bind the depth buffer to the framebuffer
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth);
@@ -186,6 +185,36 @@ struct GBuffer
     };
 
     GLuint buffer, position, normal, color, depth;
+};
+
+struct PointLight
+{
+    void set(const glm::vec3& position, const glm::vec3& att, const glm::vec3& ambient,
+            const glm::vec3& diffuse, const glm::vec3& specular)
+    {
+        this->position = position;
+        this->att = att;
+        this->ambient = ambient;
+        this->diffuse = diffuse;
+        this->specular = specular;
+    };
+
+    void setUniforms(int index, GLuint program)
+    {
+        std::string array = "lights[" + std::to_string(index) + "].";
+        glUniform3fv(glGetUniformLocation(program, (array + "position").c_str()), 1, glm::value_ptr(position));
+        glUniform3fv(glGetUniformLocation(program, (array + "att").c_str()), 1, glm::value_ptr(att));
+        glUniform3fv(glGetUniformLocation(program, (array + "ambient").c_str()), 1, glm::value_ptr(ambient));
+        glUniform3fv(glGetUniformLocation(program, (array + "diffuse").c_str()), 1, glm::value_ptr(diffuse));
+        glUniform3fv(glGetUniformLocation(program, (array + "specular").c_str()), 1, glm::value_ptr(specular));
+    };
+
+private:
+    glm::vec3 position;
+    glm::vec3 att;
+    glm::vec3 ambient;
+    glm::vec3 diffuse;
+    glm::vec3 specular;
 };
 
 int main(void)
@@ -229,6 +258,47 @@ int main(void)
         glDetachShader(lightProgram, fragment);
         glDeleteShader(fragment);
     }
+
+    // Create quad VAO
+    GLuint vao;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+    GLuint vbo;
+    glGenBuffers(1, &vbo);
+
+    float vertices[] =
+    {
+        // x   y      u     v
+        -1.0f,  1.0f,  0.0f, 1.0f,
+         1.0f,  1.0f,  1.0f, 1.0f,
+         1.0f, -1.0f,  1.0f, 0.0f,
+        -1.0f, -1.0f,  0.0f, 0.0f
+    };
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    GLuint ebo;
+    glGenBuffers(1, &ebo);
+
+    GLuint indices[] =
+    {
+        0, 1, 2,
+        2, 3, 0
+    };
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), 0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(2 * sizeof(GLfloat)));
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
     // Load the diffuse and specular texture
     // TODO: seperate specular texture
@@ -277,6 +347,29 @@ int main(void)
 
     mesh.setInstances(NUM_ASTEROIDS, models);
 
+    // Set positions and more for the lights
+    PointLight lights[NUM_POINT_LIGHTS];
+    for(int i = 0; i < NUM_POINT_LIGHTS; ++i)
+    {
+        float x, y, z;
+        x = rand() % 100 - 50.0f;
+        y = rand() % 100 - 50.0f;
+        z = rand() % 100 - 50.0f;
+
+        float r, g, b; // For simplicity's sake, ambient, diffuse and specular colours are the same
+        r = ((rand() % 100) / 200.0f) + 0.5;
+        g = ((rand() % 100) / 200.0f) + 0.5;
+        b = ((rand() % 100) / 200.0f) + 0.5;
+
+        float con, lin, qua;
+        con = 1.0f;
+        lin = 0.5f;
+        qua = 1.5f;
+
+        lights[i].set(glm::vec3(x, y, z), glm::vec3(con, lin, qua), glm::vec3(r, g, b),
+                glm::vec3(r, g, b), glm::vec3(r, g, b));
+    }
+
     GBuffer gBuffer;
 
     glUseProgram(lightProgram);
@@ -299,7 +392,7 @@ int main(void)
         updateCamera(WIDTH, HEIGHT, window);
 
         // GEOMETRY PASS
-        glBindFrameBuffer(GL_FRAMEBUFFER, gBuffer.buffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, gBuffer.buffer);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glm::mat4 proj = camera.getProjection();
@@ -311,10 +404,17 @@ int main(void)
         mesh.render();
         
         // LIGHT PASS
-        glBindFrameBuffer(GL_FRAMEBUFFER, 0);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glUseProgram(lightProgram); 
-        glUniform3fv(glGetUniformLocation(program, "eye"), 1, glm::value_ptr(camera.getPosition()));
+        glUniform3fv(glGetUniformLocation(lightProgram, "eye"), 1, glm::value_ptr(camera.getPosition()));
+        for(int i = 0; i < NUM_POINT_LIGHTS; ++i)
+        {
+            lights[i].setUniforms(i, lightProgram);
+        }
+        glBindVertexArray(vao);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -325,6 +425,9 @@ int main(void)
     glDeleteTextures(1, &textureSpec);
     glDeleteProgram(geomProgram);
     glDeleteProgram(lightProgram);
+    glDeleteVertexArrays(1, &vao);
+    glDeleteBuffers(1, &vbo);
+    glDeleteBuffers(1, &ebo);
 
     glfwTerminate();
     return 0;

@@ -67,7 +67,7 @@ billboards:
 	cp src/examples/15-billboards/*.png bin/
 
 deferred_shading:
-	$(CC) $(INCLUDES) $(CFLAGS) src/examples/16-deferred_shading/main.cpp $(COMMON) -o bin/16-deferred_shading.out $(LIBS)
+	$(CC) $(INCLUDES) $(CFLAGS) src/examples/16-deferred_shading/main.cpp src/examples/16-deferred_shading/mesh.cpp $(COMMON) -o bin/16-deferred_shading.out $(LIBS)
 	cp src/examples/16-deferred_shading/*.png bin/
 	cp src/examples/16-deferred_shading/*.obj bin/
 
