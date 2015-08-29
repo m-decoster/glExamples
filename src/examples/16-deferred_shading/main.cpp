@@ -100,7 +100,7 @@ const char* FRAGMENT_LIGHT_SRC = "#version 330 core\n"
                                  "    vec3 albedo = texture(g_albedo_spec, fTexCoord).rgb;"
                                  "    float specular = texture(g_albedo_spec, fTexCoord).a;"
                                  "    vec3 eyeDir = normalize(eye - fPosition);"
-                                 "    vec3 result;"
+                                 "    vec3 result = vec3(0.0);"
                                  "    for(int i = 0; i < NUM_POINT_LIGHTS; ++i)"
                                  "    {"
                                  "       result += pointLight(lights[i], fNormal, fPosition, eyeDir, albedo, specular, specularPower);"
@@ -271,10 +271,10 @@ int main(void)
     float vertices[] =
     {
         // x   y       u     v
-        -1.0f,  1.0f,  0.0f, 1.0f,
-         1.0f,  1.0f,  1.0f, 1.0f,
-         1.0f, -1.0f,  1.0f, 0.0f,
-        -1.0f, -1.0f,  0.0f, 0.0f
+        -1.0f,  1.0f,  0.0f, 0.0f,
+         1.0f,  1.0f,  1.0f, 0.0f,
+         1.0f, -1.0f,  1.0f, 1.0f,
+        -1.0f, -1.0f,  0.0f, 1.0f
     };
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -293,9 +293,9 @@ int main(void)
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), 0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(2 * sizeof(GLfloat)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*)(2 * sizeof(GLfloat)));
 
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -355,17 +355,17 @@ int main(void)
         float x, y, z;
         x = rand() % 100 - 50.0f;
         y = rand() % 100 - 50.0f;
-        z = rand() % 100 - 50.0f;
+        z = rand() % 100;
 
         float r, g, b; // For simplicity's sake, ambient, diffuse and specular colours are the same
-        r = ((rand() % 100) / 200.0f) + 0.5;
-        g = ((rand() % 100) / 200.0f) + 0.5;
-        b = ((rand() % 100) / 200.0f) + 0.5;
+        r = ((rand() % 10) / 20.0f) + 0.5;
+        g = ((rand() % 10) / 20.0f) + 0.5;
+        b = ((rand() % 10) / 20.0f) + 0.5;
 
         float con, lin, qua;
         con = 1.0f;
-        lin = 0.5f;
-        qua = 1.5f;
+        lin = 0.09f;
+        qua = 0.032f;
 
         lights[i].set(glm::vec3(x, y, z), glm::vec3(con, lin, qua), glm::vec3(r, g, b),
                 glm::vec3(r, g, b), glm::vec3(r, g, b));
@@ -376,12 +376,12 @@ int main(void)
     glUseProgram(lightProgram);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, gBuffer.position);
-    glUniform1i(glGetUniformLocation(lightProgram, "g_position"), 0);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, gBuffer.normal);
-    glUniform1i(glGetUniformLocation(lightProgram, "g_normal_spec_pow"), 1);
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, gBuffer.color);
+    glUniform1i(glGetUniformLocation(lightProgram, "g_position"), 0);
+    glUniform1i(glGetUniformLocation(lightProgram, "g_normal_spec_pow"), 1);
     glUniform1i(glGetUniformLocation(lightProgram, "g_albedo_spec"), 2);
 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -402,6 +402,10 @@ int main(void)
         glm::mat4 proj = camera.getProjection();
         glm::mat4 view = camera.getView();
         glUseProgram(geomProgram);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, textureDiff);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, textureSpec);
         glUniformMatrix4fv(glGetUniformLocation(geomProgram, "projection"), 1, GL_FALSE, glm::value_ptr(proj));
         glUniformMatrix4fv(glGetUniformLocation(geomProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
         glUniform1f(glGetUniformLocation(geomProgram, "specularPower"), 16.0f);
@@ -411,6 +415,12 @@ int main(void)
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glUseProgram(lightProgram); 
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, gBuffer.position);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, gBuffer.normal);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, gBuffer.color);
         glUniform3fv(glGetUniformLocation(lightProgram, "eye"), 1, glm::value_ptr(camera.getPosition()));
         for(int i = 0; i < NUM_POINT_LIGHTS; ++i)
         {
