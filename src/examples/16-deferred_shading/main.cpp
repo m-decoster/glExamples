@@ -270,7 +270,7 @@ int main(void)
 
     float vertices[] =
     {
-        // x   y      u     v
+        // x   y       u     v
         -1.0f,  1.0f,  0.0f, 1.0f,
          1.0f,  1.0f,  1.0f, 1.0f,
          1.0f, -1.0f,  1.0f, 0.0f,
@@ -327,7 +327,7 @@ int main(void)
 
     // Set random positions for the asteroids
     std::vector<glm::mat4> models;
-    models.resize(NUM_ASTEROIDS); // reserve and push_back might be more efficient
+    models.resize(NUM_ASTEROIDS);
     srand(SEED);
     for(int i = 0; i < NUM_ASTEROIDS; ++i)
     {
@@ -376,10 +376,13 @@ int main(void)
     glUseProgram(lightProgram);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, gBuffer.position);
+    glUniform1i(glGetUniformLocation(lightProgram, "g_position"), 0);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, gBuffer.normal);
+    glUniform1i(glGetUniformLocation(lightProgram, "g_normal_spec_pow"), 1);
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, gBuffer.color);
+    glUniform1i(glGetUniformLocation(lightProgram, "g_albedo_spec"), 2);
 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
