@@ -345,4 +345,4 @@ in the bright asteroids, as well as in the asteroids that are less lit in the ba
 
 [Code](src/examples/18-hdr)
 
-![deferred_shading](img/18-hdr.tiff)
+![hdr](img/18-hdr.tiff)
