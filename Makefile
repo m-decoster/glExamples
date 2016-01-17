@@ -4,7 +4,7 @@ INCLUDES=-Isrc/libs/
 LIBS=-Llib -lglfw3 -lSOIL -lassimp -lz -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo
 COMMON=src/examples/common/util.cpp src/examples/common/shader.cpp src/examples/common/camera.cpp
 
-all: hello_triangle hello_sprite hello_cube hello_heightmap hello_mesh render_to_texture cubemaps instancing particles sprite_batching morph_target_animation uniform_buffer_objects forward_rendering shadows billboards deferred_shading transparency
+all: hello_triangle hello_sprite hello_cube hello_heightmap hello_mesh render_to_texture cubemaps instancing particles sprite_batching morph_target_animation uniform_buffer_objects forward_rendering shadows billboards deferred_shading transparency hdr
 
 hello_triangle:
 	$(CC) $(INCLUDES) $(CFLAGS) src/examples/01-hello_triangle/main.cpp $(COMMON) -o bin/01-hello_triangle.out $(LIBS)
@@ -74,6 +74,11 @@ deferred_shading:
 transparency:
 	$(CC) $(INCLUDES) $(CFLAGS) src/examples/17-transparency/main.cpp $(COMMON) -o bin/17-transparency.out $(LIBS)
 	cp src/examples/17-transparency/*.png bin/
+
+hdr:
+	$(CC) $(INCLUDES) $(CFLAGS) src/examples/18-hdr/main.cpp src/examples/18-hdr/mesh.cpp $(COMMON) -o bin/18-hdr.out $(LIBS)
+	cp src/examples/18-hdr/*.png bin/
+	cp src/examples/18-hdr/*.obj bin/
 
 clean:
 	rm bin/*

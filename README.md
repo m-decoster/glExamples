@@ -81,6 +81,7 @@ To compile all examples, you can run `make` or `make all`.
     5. [Billboards](#billboards)
 4. Expert
     1. [Deferred Shading](#deferred-shading)
+    2. [HDR Deferred Shading](#hdr)
 
 ### Hello Triangle
 
@@ -331,3 +332,17 @@ deferred rendering, which can speed up rendering even more.
 [Code](src/examples/16-deferred_shading)
 
 ![deferred_shading](img/16-deferred_shading.tiff)
+
+### HDR Deferred Shading
+
+*Level: expert*
+
+**Compile**: `make hdr`  
+**Run**: `cd bin; ./18-hdr.out`
+
+This example shows how to combine deferred shading with HDR rendering. We render the same asteroid field, but add a single very bright light. We can see that details are still visible
+in the bright asteroids, as well as in the asteroids that are less lit in the background.
+
+[Code](src/examples/18-hdr)
+
+![deferred_shading](img/18-hdr.tiff)
