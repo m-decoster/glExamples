@@ -45,7 +45,7 @@ change the line that says `CXX = gcc` to `CXX = gcc -arch x86_64`. Run `make` an
 
 Download the latest stable release of ASSIMP. You can find this release on [their GitHub repository page](https://github.com/assimp/assimp). Generate build files and compile the static library. Put the resulting `libassimp.a` file in the `lib` folder where you put the other library files.
 
-Now you can use the command `make EXAMPLE_NAME` to compile an example. The
+Now you can use the command `make $EXAMPLE_NAME` (e.g., `make hdr`) to compile an example. The
 resulting binaries will be placed in the `bin` folder.
 
 ## License
