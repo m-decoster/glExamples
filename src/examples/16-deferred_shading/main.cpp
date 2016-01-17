@@ -6,8 +6,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#define WIDTH 640
-#define HEIGHT 480
+#define WIDTH (640 * 2)
+#define HEIGHT (480 * 2)
 #define NUM_ASTEROIDS 2000
 #define NUM_POINT_LIGHTS 32
 #define SEED 1993
@@ -221,7 +221,7 @@ private:
 int main(void)
 {
     GLFWwindow* window;
-    window = init("Deferred Shading", WIDTH, HEIGHT);
+    window = init("Deferred Shading", WIDTH / 2, HEIGHT / 2);
     if(!window)
     {
         return -1;
