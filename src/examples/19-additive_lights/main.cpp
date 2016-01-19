@@ -10,6 +10,8 @@
 // Whether you need this or not depends on your application and rendering pipeline
 const char* VERTEX_Z_PASS_SRC = "#version 330 core\n"
                                 "layout(location=0) in vec3 position;"
+                                "layout(location=1) in vec3 normal;"
+                                "layout(location=2) in vec2 texCoords;"
                                 "uniform mat4 model;"
                                 "uniform mat4 view;"
                                 "uniform mat4 projection;"
@@ -19,10 +21,54 @@ const char* VERTEX_Z_PASS_SRC = "#version 330 core\n"
                                 "}";
 
 const char* FRAGMENT_Z_PASS_SRC = "#version 330 core\n"
+                                  "out vec4 outputColor;"
                                   "void main()"
                                   "{"
-                                  "    gl_FragDepth = gl_FragCoord.z;"
+                                  "    outputColor = vec4(0.0, 0.0, 0.0, 0.0);"
                                   "}";
+
+const char* VERTEX_LIGHT_SRC = "#version 330 core\n"
+                               "layout(location=0) in vec3 position;"
+                               "layout(location=1) in vec3 normal;"
+                               "layout(location=2) in vec2 texCoords;"
+                               "out vec3 fNormal;"
+                               "out vec3 fPosition;"
+                               "out vec2 fTexCoords;"
+                               "uniform mat4 model;"
+                               "uniform mat4 view;"
+                               "uniform mat4 projection;"
+                               "void main()"
+                               "{"
+                               "    gl_Position = projection * view * model * vec4(position, 1.0);"
+                               "    fPosition = (model * vec4(position, 1.0)).xyz;"
+                               "    fNormal = mat3(transpose(inverse(model))) * normal;"
+                               "    fTexCoords = texCoords;"
+                               "}";
+
+const char* FRAGMENT_LIGHT_SRC = "#version 330 core\n"
+                                  "in vec3 fNormal;"
+                                  "in vec3 fPosition;"
+                                  "in vec2 fTexCoords;"
+                                  "out vec4 outputColor;"
+                                  "uniform vec3 lightPosition;"
+                                  "uniform vec3 lightColor;"
+                                  "uniform vec3 lightAtt;"
+                                  "uniform sampler2D tex;"
+                                  "void main()"
+                                  "{"
+                                  "    float dist = length(lightPosition - fPosition);"
+                                  "    float attenuation = 1.0f / (lightAtt.x + lightAtt.y * dist + lightAtt.z * dist * dist);"
+                                  "    outputColor = vec4(lightColor * vec3(texture(tex, fTexCoords)) * attenuation, 1.0);"
+                                  "}";
+
+struct PointLight
+{
+    PointLight(const glm::vec3& pos, const glm::vec3& col, const glm::vec3& att)
+        : position(pos), color(col), attenuation(att) {};
+    glm::vec3 position;
+    glm::vec3 color;
+    glm::vec3 attenuation;
+};
 
 int main(void)
 {
@@ -33,18 +79,14 @@ int main(void)
         return -1;
     }
 
-    glm::mat4 model = glm::scale(glm::mat4(), glm::vec3(100.0f, 0.5f, 100.0f));
-    model = glm::translate(model, glm::vec3(0.0f, -5.0f, 0.0f));
-
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_FRAMEBUFFER_SRGB);
+    glm::mat4 model = glm::scale(glm::mat4(), glm::vec3(100.0f, 1.0f, 100.0f));
 
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     Camera camera(CAMERA_PERSPECTIVE, 45.0f, 0.1f, 1000.0f, 640.0f, 480.0f);
     setCamera(&camera);
 
-    GLuint zPassProgram, lightProgram;
+    GLuint zPassProgram, lightPassProgram;
     {
         GLuint vertex = createShader(VERTEX_Z_PASS_SRC, GL_VERTEX_SHADER);
         GLuint fragment = createShader(FRAGMENT_Z_PASS_SRC, GL_FRAGMENT_SHADER);
@@ -59,12 +101,12 @@ int main(void)
     {
         GLuint vertex = createShader(VERTEX_LIGHT_SRC, GL_VERTEX_SHADER);
         GLuint fragment = createShader(FRAGMENT_LIGHT_SRC, GL_FRAGMENT_SHADER);
-        lightProgram = createShaderProgram(vertex, fragment);
-        linkShader(lightProgram);
-        validateShader(lightProgram);
-        glDetachShader(lightProgram, vertex);
+        lightPassProgram = createShaderProgram(vertex, fragment);
+        linkShader(lightPassProgram);
+        validateShader(lightPassProgram);
+        glDetachShader(lightPassProgram, vertex);
         glDeleteShader(vertex);
-        glDetachShader(lightProgram, fragment);
+        glDetachShader(lightPassProgram, fragment);
         glDeleteShader(fragment);
     }
 
@@ -130,41 +172,26 @@ int main(void)
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(GLfloat)));
     glBindVertexArray(0);
 
-    // Framebuffer that will be used to render in multiple passes
-    glGenFramebuffers(1, &depthMapFBO);  
-    glGenTextures(1, &depthMap);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, depthMap);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_W, SHADOW_H, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
-    glDrawBuffer(GL_NONE); // Don't write to the color buffer
-    glReadBuffer(GL_NONE);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-    {
-        std::cerr << "Error creating framebuffer, it is incomplete!" << std::endl;
-        return -1;
-    }
-
     int w, h;
     GLuint diffuse = loadImage("diffuseCube.png", &w, &h, 0, false);
     if(!diffuse)
     {
         return -1;
     }
-    GLuint specular = loadImage("specularCube.png", &w, &h, 1, false);
-    if(!specular)
-    {
-        return -1;
-    }
 
-    glClearColor(0.75f, 0.75f, 0.75f, 1.0f);
+    // attenuation
+    glm::vec3 att(1.0f, 0.7f, 1.8f);
+    PointLight redLight(glm::vec3(-0.25f, 0.0f, -0.25f), glm::vec3(1.0f, 0.0f, 0.0f), att);
+    PointLight greenLight(glm::vec3(0.0f, 0.0f, 0.25f), glm::vec3(0.0f, 1.0f, 0.0f), att);
+    PointLight blueLight(glm::vec3(0.25f, 0.0f, -0.25f), glm::vec3(0.0f, 0.0f, 1.0f), att);
+    PointLight lights[3] = { redLight, greenLight, blueLight };
+
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+
+    glEnable(GL_DEPTH_TEST);
+    // Additive blending
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE);
     
     while(!glfwWindowShouldClose(window))
     {
@@ -174,9 +201,6 @@ int main(void)
         }
 
         updateCamera(640, 480, window);
-
-        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-        glEnable(GL_DEPTH_TEST);
 
         // 1. Z-PRE-PASS
         glDepthMask(GL_TRUE); // Do depth writing
@@ -189,23 +213,22 @@ int main(void)
         glUniformMatrix4fv(glGetUniformLocation(zPassProgram, "view"), 1, GL_FALSE, glm::value_ptr(camera.getView()));
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
-        // TODO: OPTIMIZATION
-        // Scissor test using a screen space rectangle for each light
-
         // 2. LIGHTS
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glDepthMask(GL_FALSE); // Do not write depth anymore
         glUseProgram(lightPassProgram);
-        glUniform1i(glGetUniformLocation(lightPassProgram, "depthMap"), 1);
+        glUniform1i(glGetUniformLocation(lightPassProgram, "tex"), 0); // diffuse texture is bound to GL_TEXTURE0
+        glUniformMatrix4fv(glGetUniformLocation(lightPassProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+        glUniformMatrix4fv(glGetUniformLocation(lightPassProgram, "projection"), 1, GL_FALSE, glm::value_ptr(camera.getProjection()));
+        glUniformMatrix4fv(glGetUniformLocation(lightPassProgram, "view"), 1, GL_FALSE, glm::value_ptr(camera.getView()));
         for(int i = 0; i < 3; ++i)
         {
             // Render the floor for each light
-            // The vao is still bound
-            // TODO set light data in uniform
-            glUniformMatrix4fv(glGetUniformLocation(lightPassProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
-            glUniformMatrix4fv(glGetUniformLocation(lightPassProgram, "projection"), 1, GL_FALSE, glm::value_ptr(camera.getProjection()));
-            glUniformMatrix4fv(glGetUniformLocation(lightPassProgram, "view"), 1, GL_FALSE, glm::value_ptr(camera.getView()));
+            // Note that the vao is still bound from the z-pre-pass
+            // All we do is set the uniforms and call glDrawArrays
+            // Possible optimization: Scissor test using a screen space rectangle for each light
+            glUniform3fv(glGetUniformLocation(lightPassProgram, "lightPosition"), 1, glm::value_ptr(lights[i].position));
+            glUniform3fv(glGetUniformLocation(lightPassProgram, "lightColor"), 1, glm::value_ptr(lights[i].color));
+            glUniform3fv(glGetUniformLocation(lightPassProgram, "lightAtt"), 1, glm::value_ptr(lights[i].attenuation));
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
 
@@ -220,7 +243,6 @@ int main(void)
     glDeleteBuffers(1, &vbo);
     glDeleteVertexArrays(1, &vao);
     glDeleteTextures(1, &diffuse);
-    glDeleteTextures(1, &specular);
     glDeleteProgram(zPassProgram);
 
     glfwTerminate();
