@@ -82,6 +82,7 @@ To compile all examples, you can run `make` or `make all`.
 4. Expert
     1. [Deferred Shading](#deferred-shading)
     2. [HDR Deferred Shading](#hdr)
+    3. [Additive Light Passes](#additive-light-passes)
 
 ### Hello Triangle
 

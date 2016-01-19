@@ -225,7 +225,7 @@ int main(void)
             // Render the floor for each light
             // Note that the vao is still bound from the z-pre-pass
             // All we do is set the uniforms and call glDrawArrays
-            // Possible optimization: Scissor test using a screen space rectangle for each light (TODO)
+            // Possible optimization: Scissor test using a screen space rectangle for each light
             glUniform3fv(glGetUniformLocation(lightPassProgram, "lightPosition"), 1, glm::value_ptr(lights[i].position));
             glUniform3fv(glGetUniformLocation(lightPassProgram, "lightColor"), 1, glm::value_ptr(lights[i].color));
             glUniform3fv(glGetUniformLocation(lightPassProgram, "lightAtt"), 1, glm::value_ptr(lights[i].attenuation));
