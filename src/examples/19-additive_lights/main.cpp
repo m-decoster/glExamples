@@ -21,10 +21,8 @@ const char* VERTEX_Z_PASS_SRC = "#version 330 core\n"
                                 "}";
 
 const char* FRAGMENT_Z_PASS_SRC = "#version 330 core\n"
-                                  "out vec4 outputColor;"
                                   "void main()"
                                   "{"
-                                  "    outputColor = vec4(0.0, 0.0, 0.0, 0.0);"
                                   "}";
 
 const char* VERTEX_LIGHT_SRC = "#version 330 core\n"
@@ -204,6 +202,7 @@ int main(void)
 
         // 1. Z-PRE-PASS
         glDepthMask(GL_TRUE); // Do depth writing
+        glDepthFunc(GL_LESS);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glUseProgram(zPassProgram);
         glBindVertexArray(vao);
@@ -215,6 +214,7 @@ int main(void)
 
         // 2. LIGHTS
         glDepthMask(GL_FALSE); // Do not write depth anymore
+        glDepthFunc(GL_EQUAL);
         glUseProgram(lightPassProgram);
         glUniform1i(glGetUniformLocation(lightPassProgram, "tex"), 0); // diffuse texture is bound to GL_TEXTURE0
         glUniformMatrix4fv(glGetUniformLocation(lightPassProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
@@ -225,7 +225,7 @@ int main(void)
             // Render the floor for each light
             // Note that the vao is still bound from the z-pre-pass
             // All we do is set the uniforms and call glDrawArrays
-            // Possible optimization: Scissor test using a screen space rectangle for each light
+            // Possible optimization: Scissor test using a screen space rectangle for each light (TODO)
             glUniform3fv(glGetUniformLocation(lightPassProgram, "lightPosition"), 1, glm::value_ptr(lights[i].position));
             glUniform3fv(glGetUniformLocation(lightPassProgram, "lightColor"), 1, glm::value_ptr(lights[i].color));
             glUniform3fv(glGetUniformLocation(lightPassProgram, "lightAtt"), 1, glm::value_ptr(lights[i].attenuation));
