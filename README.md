@@ -346,3 +346,16 @@ in the bright asteroids, as well as in the asteroids that are less lit in the ba
 [Code](src/examples/18-hdr)
 
 ![hdr](img/18-hdr.tiff)
+
+### Additive Light Passes
+
+*Level: expert*
+
+**Compile**: `make additive_lights`  
+**Run**: `cd bin; ./19-additive_lights.out`
+
+This example shows how to do additive blending with a pass for each light. This is similar to how the Doom 3 renderer works.
+
+[Code](src/examples/19-additive_lights)
+
+![additive_lights](img/19-additive_lights.tiff)

@@ -80,5 +80,9 @@ hdr:
 	cp src/examples/18-hdr/*.png bin/
 	cp src/examples/18-hdr/*.obj bin/
 
+additive_lights:
+	$(CC) $(INCLUDES) $(CFLAGS) src/examples/19-additive_lights/main.cpp $(COMMON) -o bin/19-additive_lights.out $(LIBS)
+	cp src/examples/19-additive_lights/*.png bin/
+
 clean:
 	rm bin/*
