@@ -354,7 +354,8 @@ in the bright asteroids, as well as in the asteroids that are less lit in the ba
 **Compile**: `make additive_lights`  
 **Run**: `cd bin; ./19-additive_lights.out`
 
-This example shows how to do additive blending with a pass for each light. This is similar to how the Doom 3 renderer works.
+This example shows how to do additive blending with a pass for each light. This is similar to how the Doom 3 renderer works. The advantages of such an approach compared
+to a simple forward rendering approach are simpler shaders and the possibility to reduce the number of fragments affected by a light using a scissor test.
 
 [Code](src/examples/19-additive_lights)
 

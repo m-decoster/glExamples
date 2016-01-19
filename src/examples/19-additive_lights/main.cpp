@@ -19,30 +19,10 @@ const char* VERTEX_Z_PASS_SRC = "#version 330 core\n"
                                 "}";
 
 const char* FRAGMENT_Z_PASS_SRC = "#version 330 core\n"
-                                  "out vec4 color;"
                                   "void main()"
                                   "{"
-                                  "    color = vec4(0.0, 0.0, 0.0, 1.0);" // Start out without light
+                                  "    gl_FragDepth = gl_FragCoord.z;"
                                   "}";
-
-const char* VERTEX_FB_SRC = "#version 330 core\n"
-                            "layout(location=0) in vec2 position;"
-                            "layout(location=1) in vec2 texCoords;"
-                            "out vec2 fTexCoords;"
-                            "void main()"
-                            "{"
-                            "    gl_Position = vec4(position, 0.0f, 1.0f);"
-                            "    fTexCoords = texCoords;"
-                            "}";
-
-const char* FRAGMENT_FB_SRC = "#version 330 core\n"
-                              "in vec2 fTexCoords;"
-                              "out vec4 outputColor;"
-                              "uniform sampler2D tex;"
-                              "void main()"
-                              "{"
-                              "    outputColor = texture(tex, fTexCoords);"
-                              "}";
 
 int main(void)
 {
@@ -64,7 +44,7 @@ int main(void)
     Camera camera(CAMERA_PERSPECTIVE, 45.0f, 0.1f, 1000.0f, 640.0f, 480.0f);
     setCamera(&camera);
 
-    GLuint zPassProgram, fbProgram;
+    GLuint zPassProgram, lightProgram;
     {
         GLuint vertex = createShader(VERTEX_Z_PASS_SRC, GL_VERTEX_SHADER);
         GLuint fragment = createShader(FRAGMENT_Z_PASS_SRC, GL_FRAGMENT_SHADER);
@@ -77,38 +57,16 @@ int main(void)
         glDeleteShader(fragment);
     }
     {
-        GLuint vertex = createShader(VERTEX_FB_SRC, GL_VERTEX_SHADER);
-        GLuint fragment = createShader(FRAGMENT_FB_SRC, GL_FRAGMENT_SHADER);
-        fbProgram = createShaderProgram(vertex, fragment);
-        linkShader(fbProgram);
-        validateShader(fbProgram);
-        glDetachShader(fbProgram, vertex);
+        GLuint vertex = createShader(VERTEX_LIGHT_SRC, GL_VERTEX_SHADER);
+        GLuint fragment = createShader(FRAGMENT_LIGHT_SRC, GL_FRAGMENT_SHADER);
+        lightProgram = createShaderProgram(vertex, fragment);
+        linkShader(lightProgram);
+        validateShader(lightProgram);
+        glDetachShader(lightProgram, vertex);
         glDeleteShader(vertex);
-        glDetachShader(fbProgram, fragment);
+        glDetachShader(lightProgram, fragment);
         glDeleteShader(fragment);
     }
-    GLuint vaoQuad;
-    glGenVertexArrays(1, &vaoQuad);
-    glBindVertexArray(vaoQuad);
-    GLuint vboQuad;
-    glGenBuffers(1, &vboQuad);
-
-    float verticesQuad[] =
-    {
-        -1.0f, 1.0f, 0.0f, 1.0f,
-        -1.0f, -1.0f, 0.0f, 0.0f,
-        1.0f, -1.0f, 1.0f, 0.0f,
-        -1.0f, 1.0f, 0.0f, 1.0f,
-        1.0f, -1.0f, 1.0f, 0.0f,
-        1.0f, 1.0f, 1.0f, 1.0f
-    };
-    glBindBuffer(GL_ARRAY_BUFFER, vboQuad);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(verticesQuad), verticesQuad, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-    glBindVertexArray(0);
 
     GLuint vao;
     glGenVertexArrays(1, &vao);
@@ -173,21 +131,20 @@ int main(void)
     glBindVertexArray(0);
 
     // Framebuffer that will be used to render in multiple passes
-    GLuint fbo;
-    glGenFramebuffers(1, &fbo);
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-    GLuint fbTexture;
-    glGenTextures(1, &fbTexture);
-    glBindTexture(GL_TEXTURE_2D, fbTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 640, 480, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL); 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbTexture, 0);
-    GLuint rbo;
-    glGenRenderbuffers(1, &rbo);
-    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 640, 480);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo);
+    glGenFramebuffers(1, &depthMapFBO);  
+    glGenTextures(1, &depthMap);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, depthMap);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_W, SHADOW_H, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+    glDrawBuffer(GL_NONE); // Don't write to the color buffer
+    glReadBuffer(GL_NONE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     {
@@ -218,7 +175,7 @@ int main(void)
 
         updateCamera(640, 480, window);
 
-        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
         glEnable(GL_DEPTH_TEST);
 
         // 1. Z-PRE-PASS
@@ -232,32 +189,25 @@ int main(void)
         glUniformMatrix4fv(glGetUniformLocation(zPassProgram, "view"), 1, GL_FALSE, glm::value_ptr(camera.getView()));
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
+        // TODO: OPTIMIZATION
+        // Scissor test using a screen space rectangle for each light
+
         // 2. LIGHTS
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glDepthMask(GL_FALSE); // Do not write depth anymore
         glUseProgram(lightPassProgram);
+        glUniform1i(glGetUniformLocation(lightPassProgram, "depthMap"), 1);
         for(int i = 0; i < 3; ++i)
         {
-            // Send current framebuffer and write to the same buffer: don't do this!
-            // OTHER SOLUTION NEEDED
             // Render the floor for each light
             // The vao is still bound
+            // TODO set light data in uniform
             glUniformMatrix4fv(glGetUniformLocation(lightPassProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
             glUniformMatrix4fv(glGetUniformLocation(lightPassProgram, "projection"), 1, GL_FALSE, glm::value_ptr(camera.getProjection()));
             glUniformMatrix4fv(glGetUniformLocation(lightPassProgram, "view"), 1, GL_FALSE, glm::value_ptr(camera.getView()));
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
-
-        // DISPLAY
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glDisable(GL_DEPTH_TEST); // Do not perform depth testing
-        glClear(GL_COLOR_BUFFER_BIT);
-        glUseProgram(fbProgram);
-        // Render the quad
-        glBindVertexArray(vaoQuad);
-        glActiveTexture(GL_TEXTURE1); // The framebuffer color buffer (fbTexture) is bound to GL_TEXTURE1
-        glBindTexture(GL_TEXTURE_2D, fbTexture);
-        glUniform1i(glGetUniformLocation(fbProgram, "tex"), 1); // The framebuffer color buffer (fbTexture) is bound to GL_TEXTURE1
-        glDrawArrays(GL_TRIANGLES, 0, 6);
 
         glUseProgram(0);
         glBindVertexArray(0);
