@@ -364,4 +364,4 @@ is in itself actually quite simple to implement.
 
 [Code](src/examples/19-additive_lights)
 
-![additive_lights](img/19-additive_lights.tiff)
+![Screenshot](img/19-additive_lights.tiff)
