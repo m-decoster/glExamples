@@ -52,12 +52,11 @@ const char* FRAGMENT_LIGHT_SRC = "#version 330 core\n"
                                   "uniform vec3 lightPosition;"
                                   "uniform vec3 lightColor;"
                                   "uniform vec3 lightAtt;"
-                                  "uniform sampler2D tex;"
                                   "void main()"
                                   "{"
                                   "    float dist = length(lightPosition - fPosition);"
                                   "    float attenuation = 1.0f / (lightAtt.x + lightAtt.y * dist + lightAtt.z * dist * dist);"
-                                  "    outputColor = vec4(lightColor * vec3(texture(tex, fTexCoords)) * attenuation, 1.0);"
+                                  "    outputColor = vec4(lightColor * attenuation, 1.0);"
                                   "}";
 
 struct PointLight
@@ -88,6 +87,7 @@ std::vector<glm::vec3> lightBB(const PointLight& light)
     result.reserve(8);
     float radius = lightRadius(light);
     float diameter = 2.0f * radius;
+
     // TOP
     glm::vec3 topLeftBack = light.position - radius;
     glm::vec3 topRightBack = topLeftBack;
@@ -132,15 +132,11 @@ void lightBBScreen(const PointLight &light, const glm::mat4& proj, const glm::ma
         // [-1,1] and [-1,1] -> [0,width] and [0,height]
         int x = (int) ((norm_dev_coord_v.x + 1.0f) / 2.0f) * width;
         int y = (int) ((norm_dev_coord_v.y + 1.0f) / 2.0f) * height;
-        if (x < minX) minX = x;
-        if (x > maxX) maxX = x;
-        if (y < minY) minY = y;
-        if (y > maxY) maxY = y;
+        if (x < minX && x >= 0)       minX = x;
+        if (x > maxX && x <= width)   maxX = x;
+        if (y < minY && y >= 0)       minY = y;
+        if (y > maxY && y <= height)  maxY = y;
     }
-    if (minX < 0) minX = 0;
-    if (maxX >= width) maxX = width - 1;
-    if (minY < 0) minY = 0;
-    if (maxY >= height) maxY = height - 1;
     result[0] = minX;
     result[1] = minY;
     result[2] = maxX;
@@ -249,13 +245,6 @@ int main(void)
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(GLfloat)));
     glBindVertexArray(0);
 
-    int w, h;
-    GLuint diffuse = loadImage("opaque.png", &w, &h, 0, false);
-    if(!diffuse)
-    {
-        return -1;
-    }
-
     // attenuation
     glm::vec3 att(1.0f, 0.35f, 0.44f);
     PointLight redLight(glm::vec3(-0.25f, 0.0f, -0.25f), glm::vec3(1.0f, 0.0f, 0.0f), att);
@@ -304,7 +293,6 @@ int main(void)
         glClear(GL_COLOR_BUFFER_BIT); // Only clear color buffer
         glDepthFunc(GL_EQUAL);
         glUseProgram(lightPassProgram);
-        glUniform1i(glGetUniformLocation(lightPassProgram, "tex"), 0); // diffuse texture is bound to GL_TEXTURE0
         glUniformMatrix4fv(glGetUniformLocation(lightPassProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
         glUniformMatrix4fv(glGetUniformLocation(lightPassProgram, "projection"), 1, GL_FALSE, glm::value_ptr(camera.getProjection()));
         glUniformMatrix4fv(glGetUniformLocation(lightPassProgram, "view"), 1, GL_FALSE, glm::value_ptr(camera.getView()));
@@ -337,7 +325,6 @@ int main(void)
     // Clean up
     glDeleteBuffers(1, &vbo);
     glDeleteVertexArrays(1, &vao);
-    glDeleteTextures(1, &diffuse);
     glDeleteProgram(zPassProgram);
 
     glfwTerminate();
