@@ -76,7 +76,7 @@ float lightRadius(const PointLight& light)
     float constant = light.attenuation.x;
     float linear = light.attenuation.y;
     float quadratic = light.attenuation.z;
-    float radius = (-linear + std::sqrtf(linear * linear - 4 * quadratic * (constant - (256 / 5.0) * maxComponent))) / (2 * quadratic);
+    float radius = (-linear + std::sqrtf(linear * linear - 4.0f * quadratic * (constant - (256.0f / 2.0f) * maxComponent))) / (2.0f * quadratic);
     return radius;
 }
 
@@ -89,20 +89,23 @@ std::vector<glm::vec3> lightBB(const PointLight& light)
     float diameter = 2.0f * radius;
 
     // TOP
-    glm::vec3 topLeftBack = light.position - radius;
+    glm::vec3 topLeftBack = light.position;
+              topLeftBack.x -= radius;
+              topLeftBack.y += radius;
+              topLeftBack.z += radius;
     glm::vec3 topRightBack = topLeftBack;
               topRightBack.x += diameter;
     glm::vec3 topLeftFront = topLeftBack;
-              topLeftFront.z += diameter;
+              topLeftFront.z -= diameter;
     glm::vec3 topRightFront = topLeftFront;
               topRightFront.x += diameter;
     // BOTTOM
     glm::vec3 bottomLeftBack = topLeftBack;
-              bottomLeftBack.y += diameter;
+              bottomLeftBack.y -= diameter;
     glm::vec3 bottomRightBack = bottomLeftBack;
               bottomRightBack.x += diameter;
     glm::vec3 bottomLeftFront = bottomLeftBack;
-              bottomLeftFront.z += diameter;
+              bottomLeftFront.z -= diameter;
     glm::vec3 bottomRightFront = bottomLeftFront;
               bottomRightFront.x += diameter;
     
@@ -128,10 +131,21 @@ void lightBBScreen(const PointLight &light, const glm::mat4& proj, const glm::ma
     {
         glm::vec4 v = glm::vec4(it->x, it->y, it->z, 1.0);
         v = proj * (view * v);
+        if (v.w <= 0.0)
+        {
+            // We are very close to the light source...
+            // Using the scissors here would generate artifacts.
+            // Because we are close, we can just render the entire screen.
+            minX = 0;
+            minY = 0;
+            maxX = width;
+            maxY = height;
+            break;
+        }
         glm::vec3 norm_dev_coord_v = glm::vec3(v) / v.w;
         // [-1,1] and [-1,1] -> [0,width] and [0,height]
-        int x = (int) ((norm_dev_coord_v.x + 1.0f) / 2.0f) * width;
-        int y = (int) ((norm_dev_coord_v.y + 1.0f) / 2.0f) * height;
+        int x = static_cast<int> (((norm_dev_coord_v.x + 1.0f) / 2.0f) * width);
+        int y = static_cast<int> (((norm_dev_coord_v.y + 1.0f) / 2.0f) * height);
         if (x < minX && x >= 0)       minX = x;
         if (x > maxX && x <= width)   maxX = x;
         if (y < minY && y >= 0)       minY = y;
@@ -306,7 +320,6 @@ int main(void)
             // We calculate the light's position in screen space and use glScissor to render only that part of the screen.
             lightBBScreen(lights[i], camera.getProjection(), camera.getView(), width, height, boundingBox);
             glScissor(boundingBox[0], boundingBox[1], boundingBox[2], boundingBox[3]);
-            std::cout << i << ": " << boundingBox[0] <<  "," << boundingBox[1] << "," << boundingBox[2] << "," << boundingBox[3] << std::endl;
 
             glUniform3fv(glGetUniformLocation(lightPassProgram, "lightPosition"), 1, glm::value_ptr(lights[i].position));
             glUniform3fv(glGetUniformLocation(lightPassProgram, "lightColor"), 1, glm::value_ptr(lights[i].color));
