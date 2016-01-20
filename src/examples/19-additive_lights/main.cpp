@@ -201,9 +201,10 @@ int main(void)
         updateCamera(640, 480, window);
 
         // 1. Z-PRE-PASS
+        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); // Don't write colors
         glDepthMask(GL_TRUE); // Do depth writing
         glDepthFunc(GL_LESS);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClear(GL_DEPTH_BUFFER_BIT); // Only clear depth buffer
         glUseProgram(zPassProgram);
         glBindVertexArray(vao);
         // Render our floor
@@ -213,7 +214,9 @@ int main(void)
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
         // 2. LIGHTS
+        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE); // Do color writing
         glDepthMask(GL_FALSE); // Do not write depth anymore
+        glClear(GL_COLOR_BUFFER_BIT); // Only clear color buffer
         glDepthFunc(GL_EQUAL);
         glUseProgram(lightPassProgram);
         glUniform1i(glGetUniformLocation(lightPassProgram, "tex"), 0); // diffuse texture is bound to GL_TEXTURE0
