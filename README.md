@@ -358,8 +358,9 @@ in the bright asteroids, as well as in the asteroids that are less lit in the ba
 This example shows how to do additive blending with a pass for each light. This is similar to how the Doom 3 renderer works. The advantages of such an approach compared
 to a simple forward rendering approach are simpler shaders and the possibility to reduce the number of fragments affected by a light using a scissor test.  
 A disadvantage is that we need to do one pass per light, instead of one pass for all lights. However the complexity of a single pass can be greatly reduced.  
-In this example, we also do a Z pre-pass to fill the depth buffer before drawing lights. This is why this example got the *expert* label, as additive light blending
-is actually quite simple to implement.
+In this example, we also do a Z pre-pass to fill the depth buffer before drawing lights, and we do some
+math to calculate the screen space bounding box of a light. This is why this example got the *expert* label, as additive light blending
+is in itself actually quite simple to implement.
 
 [Code](src/examples/19-additive_lights)
 

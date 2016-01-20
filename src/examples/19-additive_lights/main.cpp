@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <vector>
 
 // Z-Buffer Pre-Pass
 // This avoids overdraw
@@ -67,6 +68,84 @@ struct PointLight
     glm::vec3 color;
     glm::vec3 attenuation;
 };
+
+// Courtesy of http://learnopengl.com/#!Advanced-Lighting/Deferred-Shading
+// Calculate a light's radius based on its attenuation
+float lightRadius(const PointLight& light)
+{
+    float maxComponent = std::fmaxf(std::fmaxf(light.color.x, light.color.y), light.color.z);
+    float constant = light.attenuation.x;
+    float linear = light.attenuation.y;
+    float quadratic = light.attenuation.z;
+    float radius = (-linear + std::sqrtf(linear * linear - 4 * quadratic * (constant - (256 / 5.0) * maxComponent))) / (2 * quadratic);
+    return radius;
+}
+
+// Calculate a light's 3D bounding box based on its radius and position
+std::vector<glm::vec3> lightBB(const PointLight& light)
+{
+    std::vector<glm::vec3> result;
+    result.reserve(8);
+    float radius = lightRadius(light);
+    float diameter = 2.0f * radius;
+    // TOP
+    glm::vec3 topLeftBack = light.position - radius;
+    glm::vec3 topRightBack = topLeftBack;
+              topRightBack.x += diameter;
+    glm::vec3 topLeftFront = topLeftBack;
+              topLeftFront.z += diameter;
+    glm::vec3 topRightFront = topLeftFront;
+              topRightFront.x += diameter;
+    // BOTTOM
+    glm::vec3 bottomLeftBack = topLeftBack;
+              bottomLeftBack.y += diameter;
+    glm::vec3 bottomRightBack = bottomLeftBack;
+              bottomRightBack.x += diameter;
+    glm::vec3 bottomLeftFront = bottomLeftBack;
+              bottomLeftFront.z += diameter;
+    glm::vec3 bottomRightFront = bottomLeftFront;
+              bottomRightFront.x += diameter;
+    
+    result.push_back(topLeftBack);
+    result.push_back(topRightBack);
+    result.push_back(topLeftFront);
+    result.push_back(topRightFront);
+
+    result.push_back(bottomLeftBack);
+    result.push_back(bottomRightBack);
+    result.push_back(bottomLeftFront);
+    result.push_back(bottomRightFront);
+
+    return result;
+}
+
+// Calculate a light's bounding box in screen space based on its bounding box in world space
+void lightBBScreen(const PointLight &light, const glm::mat4& proj, const glm::mat4& view, int width, int height, int* result)
+{
+    std::vector<glm::vec3> worldBB = lightBB(light);
+    int minX = width, maxX = 0, minY = height, maxY = 0;
+    for(auto it = worldBB.begin(); it != worldBB.end(); ++it)
+    {
+        glm::vec4 v = glm::vec4(it->x, it->y, it->z, 1.0);
+        v = proj * (view * v);
+        glm::vec3 norm_dev_coord_v = glm::vec3(v) / v.w;
+        // [-1,1] and [-1,1] -> [0,width] and [0,height]
+        int x = (int) ((norm_dev_coord_v.x + 1.0f) / 2.0f) * width;
+        int y = (int) ((norm_dev_coord_v.y + 1.0f) / 2.0f) * height;
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+    }
+    if (minX < 0) minX = 0;
+    if (maxX >= width) maxX = width - 1;
+    if (minY < 0) minY = 0;
+    if (maxY >= height) maxY = height - 1;
+    result[0] = minX;
+    result[1] = minY;
+    result[2] = maxX;
+    result[3] = maxY;
+}
 
 int main(void)
 {
@@ -171,14 +250,14 @@ int main(void)
     glBindVertexArray(0);
 
     int w, h;
-    GLuint diffuse = loadImage("diffuseCube.png", &w, &h, 0, false);
+    GLuint diffuse = loadImage("opaque.png", &w, &h, 0, false);
     if(!diffuse)
     {
         return -1;
     }
 
     // attenuation
-    glm::vec3 att(1.0f, 0.7f, 1.8f);
+    glm::vec3 att(1.0f, 0.35f, 0.44f);
     PointLight redLight(glm::vec3(-0.25f, 0.0f, -0.25f), glm::vec3(1.0f, 0.0f, 0.0f), att);
     PointLight greenLight(glm::vec3(0.0f, 0.0f, 0.25f), glm::vec3(0.0f, 1.0f, 0.0f), att);
     PointLight blueLight(glm::vec3(0.25f, 0.0f, -0.25f), glm::vec3(0.0f, 0.0f, 1.0f), att);
@@ -187,6 +266,7 @@ int main(void)
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_SCISSOR_TEST);
     // Additive blending
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE);
@@ -200,7 +280,12 @@ int main(void)
 
         updateCamera(640, 480, window);
 
+        int width, height;
+        int boundingBox[4]; // for each light
+        glfwGetFramebufferSize(window, &width, &height);
+
         // 1. Z-PRE-PASS
+        glScissor(0, 0, width, height); // Reset the scissor for the Z-PRE-PASS
         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); // Don't write colors
         glDepthMask(GL_TRUE); // Do depth writing
         glDepthFunc(GL_LESS);
@@ -228,10 +313,17 @@ int main(void)
             // Render the floor for each light
             // Note that the vao is still bound from the z-pre-pass
             // All we do is set the uniforms and call glDrawArrays
-            // Possible optimization: Scissor test using a screen space rectangle for each light
+            // 
+            // We optimize this part by only rendering the part of the screen that is affected by a light.
+            // We calculate the light's position in screen space and use glScissor to render only that part of the screen.
+            lightBBScreen(lights[i], camera.getProjection(), camera.getView(), width, height, boundingBox);
+            glScissor(boundingBox[0], boundingBox[1], boundingBox[2], boundingBox[3]);
+            std::cout << i << ": " << boundingBox[0] <<  "," << boundingBox[1] << "," << boundingBox[2] << "," << boundingBox[3] << std::endl;
+
             glUniform3fv(glGetUniformLocation(lightPassProgram, "lightPosition"), 1, glm::value_ptr(lights[i].position));
             glUniform3fv(glGetUniformLocation(lightPassProgram, "lightColor"), 1, glm::value_ptr(lights[i].color));
             glUniform3fv(glGetUniformLocation(lightPassProgram, "lightAtt"), 1, glm::value_ptr(lights[i].attenuation));
+            // Additionally, we only render objects within the light radius (here: all objects = floor).
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
 
