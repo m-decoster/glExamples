@@ -94,7 +94,7 @@ This example shows the minimal code needed to render a simple colored triangle.
 
 [Code](src/examples/01-hello_triangle)
 
-![hello triangle](img/01-hello_triangle.tiff)
+![Screenshot](img/01-hello_triangle.tiff)
 
 ### Hello Sprite
 
@@ -108,7 +108,7 @@ This example shows the minimal code needed to render a textured quad. It also us
 
 [Code](src/examples/02-hello_sprite)
 
-![hello sprite](img/02-hello_sprite.tiff)
+![Screenshot](img/02-hello_sprite.tiff)
 
 ### Hello Cube
 
@@ -122,7 +122,7 @@ uses depth testing to make sure the cube is rendered correctly.
 
 [Code](src/examples/03-hello_cube)
 
-![hello cube](img/03-hello_cube.tiff)
+![Screenshot](img/03-hello_cube.tiff)
 
 ### Hello Heightmap
 
@@ -139,7 +139,7 @@ Finally, we also introduce backface culling.
 
 [Code](src/examples/04-hello_heightmap)
 
-![hello heightmap](img/04-hello_heightmap.tiff)
+![Screenshot](img/04-hello_heightmap.tiff)
 
 ### Hello Mesh
 
@@ -154,7 +154,7 @@ a `Mesh` class. We will be making changes to these classes in later examples if 
 
 [Code](src/examples/05-hello_mesh)
 
-![hello mesh](img/05-hello_mesh.tiff)
+![Screenshot](img/05-hello_mesh.tiff)
 
 ### Transparency
 
@@ -168,7 +168,7 @@ This is just one way to render transparent objects.
 
 [Code](src/examples/17-transparency)
 
-![transparency](img/17-transparency.tiff)
+![Screenshot](img/17-transparency.tiff)
 
 ### Render To Texture
 
@@ -182,7 +182,7 @@ off-screen texture, and then render that texture in grayscale to the screen.
 
 [Code](src/examples/06-render_to_texture)
 
-![render to texture](img/06-render_to_texture.tiff)
+![Screenshot](img/06-render_to_texture.tiff)
 
 ### Cubemaps
 
@@ -196,7 +196,7 @@ into a cubemap, and it demonstrates how to draw the skybox behind everything els
 
 [Code](src/examples/07-cubemaps)
 
-![cubemaps](img/07-cubemaps.tiff)
+![Screenshot](img/07-cubemaps.tiff)
 
 ### Instancing
 
@@ -211,7 +211,7 @@ is in the `Mesh` class. Make sure to look at the `setInstances` and `render` met
 
 [Code](src/examples/08-instancing)
 
-![instancing](img/08-instancing.tiff)
+![Screenshot](img/08-instancing.tiff)
 
 ### Particles
 
@@ -227,7 +227,7 @@ example and take away from the understanding of simple particle rendering.
 
 [Code](src/examples/09-particles)
 
-![particles](img/09-particles.tiff)
+![Screenshot](img/09-particles.tiff)
 
 ### Sprite Batching
 
@@ -244,7 +244,7 @@ but has more draw calls in a worst case scenario. It does not have the overhead 
 
 [Code](src/examples/10-sprite_batching)
 
-![sprite_batching](img/10-sprite_batching.tiff)
+![Screenshot](img/10-sprite_batching.tiff)
 
 ### Morph Target Animation
 
@@ -261,7 +261,7 @@ The methods used in this example can easily be updated to accomodate different m
 
 [Code](src/examples/11-morph_target_animation)
 
-![morph_target_animation](img/11-morph_target_animation.tiff)
+![Screenshot](img/11-morph_target_animation.tiff)
 
 ### Uniform Buffer Objects
 
@@ -276,7 +276,7 @@ projection and view uniform matrices.
 
 [Code](src/examples/12-uniform_buffer_objects)
 
-![uniform_buffer_objects](img/12-uniform_buffer_objects.tiff)
+![Screenshot](img/12-uniform_buffer_objects.tiff)
 
 ### Forward Rendering
 
@@ -290,7 +290,7 @@ to render a lit cube with several lights.
 
 [Code](src/examples/13-forward_rendering)
 
-![forward_rendering](img/13-forward_rendering.tiff)
+![Screenshot](img/13-forward_rendering.tiff)
 
 ### Shadows
 
@@ -304,7 +304,7 @@ handles directional lights.
 
 [Code](src/examples/14-shadows)
 
-![shadows](img/14-shadows.tiff)
+![Screenshot](img/14-shadows.tiff)
 
 ### Billboards
 
@@ -317,7 +317,7 @@ This example shows how to render billboards (2D sprites that are always oriented
 
 [Code](src/examples/15-billboards)
 
-![billboards](img/15-billboards.tiff)
+![Screenshot](img/15-billboards.tiff)
 
 ### Deferred Shading
 
@@ -331,7 +331,7 @@ deferred rendering, which can speed up rendering even more.
 
 [Code](src/examples/16-deferred_shading)
 
-![deferred_shading](img/16-deferred_shading.tiff)
+![Screenshot](img/16-deferred_shading.tiff)
 
 ### HDR Deferred Shading
 
@@ -345,4 +345,4 @@ in the bright asteroids, as well as in the asteroids that are less lit in the ba
 
 [Code](src/examples/18-hdr)
 
-![hdr](img/18-hdr.tiff)
+![Screenshot](img/18-hdr.tiff)
