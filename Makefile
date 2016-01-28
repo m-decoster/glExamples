@@ -4,7 +4,7 @@ INCLUDES=-Isrc/libs/
 LIBS=-Llib -lglfw3 -lSOIL -lassimp -lz -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo
 COMMON=src/examples/common/util.cpp src/examples/common/shader.cpp src/examples/common/camera.cpp
 
-all: hello_triangle hello_sprite hello_cube hello_heightmap hello_mesh render_to_texture cubemaps instancing particles sprite_batching morph_target_animation uniform_buffer_objects forward_rendering shadows billboards deferred_shading transparency hdr
+all: hello_triangle hello_sprite hello_cube hello_heightmap hello_mesh render_to_texture cubemaps instancing particles sprite_batching morph_target_animation uniform_buffer_objects forward_rendering shadows billboards deferred_shading transparency hdr point_shadows
 
 hello_triangle:
 	$(CC) $(INCLUDES) $(CFLAGS) src/examples/01-hello_triangle/main.cpp $(COMMON) -o bin/01-hello_triangle.out $(LIBS)
@@ -82,7 +82,9 @@ hdr:
 
 additive_lights:
 	$(CC) $(INCLUDES) $(CFLAGS) src/examples/19-additive_lights/main.cpp $(COMMON) -o bin/19-additive_lights.out $(LIBS)
-	cp src/examples/19-additive_lights/*.png bin/
+
+point_shadows:
+	$(CC) $(INCLUDES) $(CFLAGS) src/examples/20-point_shadows/main.cpp src/examples/20-point_shadows/shader.cpp src/examples/20-point_shadows/util.cpp $(COMMON) -o bin/20-point_shadows.out $(LIBS)
 
 clean:
 	rm bin/*

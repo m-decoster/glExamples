@@ -74,8 +74,10 @@ int main(void)
     GLuint fbTexture;
     glGenTextures(1, &fbTexture);
     glBindTexture(GL_TEXTURE_2D, fbTexture);
+    int fbWidth, fbHeight;
+    glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
     // The size of the texture is the size of the screen, and we send NULL as data
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 640, 480, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL); 
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, fbWidth, fbHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL); 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     // Now set the texture as the color buffer of the framebuffer
@@ -85,7 +87,7 @@ int main(void)
     GLuint rbo;
     glGenRenderbuffers(1, &rbo);
     glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 640, 480);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, fbWidth, fbHeight);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo);
 
     // Check if the framebuffer is complete. This should be the case after adding at least
@@ -121,7 +123,7 @@ int main(void)
     glBindVertexArray(0);
 
     // Create a perspective projection matrix
-    glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)640/(float)480, 0.1f, 1000.0f);
+    glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)fbWidth/(float)fbHeight, 0.1f, 1000.0f);
     // vertex_clip = M_projection . M_view . M_model . vertex_local
     // Create the view matrix
     glm::mat4 view;

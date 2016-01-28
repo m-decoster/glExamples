@@ -2,7 +2,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 Camera::Camera(CameraType type, float fov, float zNear, float zFar, float width, float height)
-    : type(type), width(width), height(height), zNear(zNear), zFar(zFar), fov(fov)
+    : type(type), position(0.0f, 0.0f, 0.0f), width(width), height(height), zNear(zNear), zFar(zFar), fov(fov)
 {
     angle = glm::vec2(0.0f, 0.0f);
     if(type == CAMERA_ORTHOGONAL)

@@ -365,3 +365,17 @@ is in itself actually quite simple to implement without these extra tricks.
 [Code](src/examples/19-additive_lights)
 
 ![Screenshot](img/19-additive_lights.tiff)
+
+### Point Shadows
+
+*Level: expert*
+
+**Compile**: `make point_shadows`  
+**Run**: `cd bin; ./20-point_shadows.out`
+
+This example, based on [this great tutorial](http://learnopengl.com/#!Advanced-Lighting/Shadows/Point-Shadows) shows how to render shadows for point lights, by creating a cubemap depth texture with a single render pass.  
+The example is far from optimized, but shows that rendering point light shadows can be quite expensive and should be done only sparingly.
+
+[Code](src/examples/20-point_shadows)
+
+![Screenshot](img/20-point_shadows.tiff)

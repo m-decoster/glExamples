@@ -31,6 +31,15 @@ GLuint createShaderProgram(GLuint vertex, GLuint fragment)
     return program;
 }
 
+GLuint createShaderProgram(GLuint vertex, GLuint geometry, GLuint fragment)
+{
+    GLuint program = glCreateProgram();
+    glAttachShader(program, vertex);
+    glAttachShader(program, geometry);
+    glAttachShader(program, fragment);
+    return program;
+}
+
 bool linkShader(GLuint program)
 {
     // Link the program and check the status: this will report semantics errors
