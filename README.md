@@ -253,7 +253,7 @@ but has more draw calls in a worst case scenario. It does not have the overhead 
 
 *Level: intermediate*
 
-**Compile**: `make dear_imgui`
+**Compile**: `make dear_imgui`  
 **Run**: `cd bin; ./21-dear_imgui.out`
 
 This example shows how to use the code provided by the developers of the Dear Imgui library to
