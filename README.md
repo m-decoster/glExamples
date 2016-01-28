@@ -28,6 +28,7 @@ These examples have some dependencies:
 * [SOIL](http://www.lonesock.net/soil.html)
 * [GLM](http://glm.g-truc.net)
 * [ASSIMP](http://assimp.sf.net/)
+* [Dear Imgui](https://github.com/ocornut/imgui)
 
 ## Compiling
 
@@ -73,6 +74,7 @@ To compile all examples, you can run `make` or `make all`.
     3. [Instancing](#instancing)
     4. [Particles](#particles)
     5. [Sprite Batching](#sprite-batching)
+    6. [Dear Imgui](#dear-imgui)
 3. Advanced
     1. [Morph Target Animation](#morph-target-animation)
     2. [Uniform Buffer Objects](#uniform-buffer-objects)
@@ -246,6 +248,21 @@ but has more draw calls in a worst case scenario. It does not have the overhead 
 [Code](src/examples/10-sprite_batching)
 
 ![Screenshot](img/10-sprite_batching.tiff)
+
+### Dear Imgui
+
+*Level: intermediate*
+
+**Compile**: `make dear_imgui`
+**Run**: `cd bin; ./21-dear_imgui.out`
+
+This example shows how to use the code provided by the developers of the Dear Imgui library to
+display some items such as buttons and text on the window in an immediate mode way. The example is very small,
+which shows how easy it is to set up imgui.
+
+[Code](src/examples/21-dear_imgui)
+
+![Screenshot](img/21-dear_imgui.tiff)
 
 ### Morph Target Animation
 

@@ -2,9 +2,10 @@ CC=g++
 CFLAGS=-Wall -std=c++11
 INCLUDES=-Isrc/libs/
 LIBS=-Llib -lglfw3 -lSOIL -lassimp -lz -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo
-COMMON=src/examples/common/util.cpp src/examples/common/shader.cpp src/examples/common/camera.cpp
+IMGUI=src/libs/imgui/*.cpp
+COMMON=src/examples/common/util.cpp src/examples/common/shader.cpp src/examples/common/camera.cpp $(IMGUI)
 
-all: hello_triangle hello_sprite hello_cube hello_heightmap hello_mesh render_to_texture cubemaps instancing particles sprite_batching morph_target_animation uniform_buffer_objects forward_rendering shadows billboards deferred_shading transparency hdr point_shadows
+all: hello_triangle hello_sprite hello_cube hello_heightmap hello_mesh render_to_texture cubemaps instancing particles sprite_batching morph_target_animation uniform_buffer_objects forward_rendering shadows billboards deferred_shading transparency hdr point_shadows dear_imgui
 
 hello_triangle:
 	$(CC) $(INCLUDES) $(CFLAGS) src/examples/01-hello_triangle/main.cpp $(COMMON) -o bin/01-hello_triangle.out $(LIBS)
@@ -85,6 +86,9 @@ additive_lights:
 
 point_shadows:
 	$(CC) $(INCLUDES) $(CFLAGS) src/examples/20-point_shadows/main.cpp src/examples/20-point_shadows/shader.cpp src/examples/20-point_shadows/util.cpp $(COMMON) -o bin/20-point_shadows.out $(LIBS)
+
+dear_imgui:
+	$(CC) $(INCLUDES) $(CFLAGS) src/examples/21-dear_imgui/main.cpp src/examples/21-dear_imgui/imgui_impl_glfw_gl3.cpp $(COMMON) -o bin/21-dear_imgui.out $(LIBS)
 
 clean:
 	rm bin/*
