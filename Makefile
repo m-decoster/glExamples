@@ -85,7 +85,7 @@ additive_lights:
 	$(CC) $(INCLUDES) $(CFLAGS) src/examples/19-additive_lights/main.cpp $(COMMON) -o bin/19-additive_lights.out $(LIBS)
 
 point_shadows:
-	$(CC) $(INCLUDES) $(CFLAGS) src/examples/20-point_shadows/main.cpp src/examples/20-point_shadows/shader.cpp src/examples/20-point_shadows/util.cpp $(COMMON) -o bin/20-point_shadows.out $(LIBS)
+	$(CC) $(INCLUDES) $(CFLAGS) src/examples/20-point_shadows/main.cpp src/examples/20-point_shadows/shader.cpp $(COMMON) -o bin/20-point_shadows.out $(LIBS)
 
 dear_imgui:
 	$(CC) $(INCLUDES) $(CFLAGS) src/examples/21-dear_imgui/main.cpp src/examples/21-dear_imgui/imgui_impl_glfw_gl3.cpp $(COMMON) -o bin/21-dear_imgui.out $(LIBS)

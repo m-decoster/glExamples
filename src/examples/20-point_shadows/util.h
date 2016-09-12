@@ -16,7 +16,4 @@ struct PointLight
     glm::vec3 attenuation;
 };
 
-void drawQuad(GLuint program, int* boundingBox, int width, int height);
-void lightBBScreen(const PointLight &light, const glm::mat4& proj, const glm::mat4& view, int width, int height, int* result);
-
 #endif

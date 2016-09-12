@@ -12,14 +12,13 @@ extern const char* VERTEX_Z_PASS_SRC;
 extern const char* FRAGMENT_Z_PASS_SRC;
 extern const char* VERTEX_LIGHT_SRC;
 extern const char* FRAGMENT_LIGHT_SRC;
-extern const char* VERTEX_STENCIL_SRC;
-extern const char* FRAGMENT_STENCIL_SRC;
 extern const char* VERTEX_SHADOW_SRC;
 extern const char* GEOM_SHADOW_SRC;
 extern const char* FRAGMENT_SHADOW_SRC;
 
-const GLuint SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
-int g_screenWidth, g_screenHeight;
+static const GLuint SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
+static int g_screenWidth, g_screenHeight;
+static bool shouldUpdateShadowMaps;
 
 void depthPrePass(GLuint zPassProgram, GLuint vao, const std::vector<glm::mat4>& cubeModels, const glm::mat4& floorModel, Camera& camera)
 {
@@ -53,6 +52,7 @@ void shadowPass(GLuint shadowProgram, GLuint depthCubemap, GLuint depthMapFBO, c
 
     // View matrix for each face
     std::vector<glm::mat4> shadowTransforms;
+    shadowTransforms.reserve(6);
     shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(1.0,0.0,0.0), glm::vec3(0.0,-1.0,0.0)));
     shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(-1.0,0.0,0.0), glm::vec3(0.0,-1.0,0.0)));
     shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0,1.0,0.0), glm::vec3(0.0,0.0,1.0)));
@@ -91,46 +91,53 @@ void shadowPass(GLuint shadowProgram, GLuint depthCubemap, GLuint depthMapFBO, c
     glEnable(GL_BLEND);
 }
 
-void lightPass(GLuint lightPassProgram, GLuint stencilProgram, GLuint vao, const std::vector<glm::mat4>& cubeModels, const glm::mat4& floorModel, Camera& camera, int width, int height, int* boundingBox, PointLight& light, float far)
+static GLint lightPositionLocation = -1,
+             lightColorLocation = -1,
+             lightAttLocation = -1,
+             viewPosLocation = -1,
+             projectionLocation = -1,
+             viewLocation = -1,
+             modelLocation = -1,
+             far_planeLocation = -1,
+             depthMapLocation = -1;
+
+void lightPass(GLuint lightPassProgram, GLuint vao, const std::vector<glm::mat4>& cubeModels, const glm::mat4& floorModel, Camera& camera, int width, int height, int* boundingBox, PointLight& light, float far)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    glEnable(GL_STENCIL_TEST);
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE); // Do color writing
     glDepthMask(GL_FALSE); // Do not write depth anymore
     glClear(GL_COLOR_BUFFER_BIT); // Only clear color buffer
     glDepthFunc(GL_EQUAL);
 
-    // Calculate screen space bounding box
-    lightBBScreen(light, camera.getProjection(), camera.getView(), g_screenWidth, g_screenHeight, boundingBox);
-    // Update the stencil buffer
-    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); // Comment this line to see the contents of the stencil buffer
-    glDisable(GL_DEPTH_TEST);
-    glClear(GL_STENCIL_BUFFER_BIT); // Clear the stencil buffer
-    glStencilFunc(GL_ALWAYS, 1, 0xFF); // If a fragment is drawn, set it to 1
-    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-    glStencilMask(0xFF); // Write to stencil buffer
-    drawQuad(stencilProgram, boundingBox, g_screenWidth, g_screenHeight);
-    glStencilMask(0x00); // No longer write to stencil buffer
-    glEnable(GL_DEPTH_TEST);
-    glStencilFunc(GL_EQUAL, 1, 0xFF); // If a fragment's stencil buffer value is 1, draw it
-    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE); // Draw to the color buffer again
-
     glBindVertexArray(vao);
     glUseProgram(lightPassProgram);
-    glUniform3fv(glGetUniformLocation(lightPassProgram, "lightPosition"), 1, glm::value_ptr(light.position));
-    glUniform3fv(glGetUniformLocation(lightPassProgram, "lightColor"), 1, glm::value_ptr(light.color));
-    glUniform3fv(glGetUniformLocation(lightPassProgram, "lightAtt"), 1, glm::value_ptr(light.attenuation));
-    glUniform3fv(glGetUniformLocation(lightPassProgram, "viewPos"), 1, glm::value_ptr(camera.getPosition()));
-    glUniformMatrix4fv(glGetUniformLocation(lightPassProgram, "projection"), 1, GL_FALSE, glm::value_ptr(camera.getProjection()));
-    glUniformMatrix4fv(glGetUniformLocation(lightPassProgram, "view"), 1, GL_FALSE, glm::value_ptr(camera.getView()));
-    glUniformMatrix4fv(glGetUniformLocation(lightPassProgram, "model"), 1, GL_FALSE, glm::value_ptr(floorModel));
-    glUniform1f(glGetUniformLocation(lightPassProgram, "far_plane"), far);
-    glUniform1i(glGetUniformLocation(lightPassProgram, "depthMap"), 0);
+    if(lightPositionLocation == -1)
+    {
+#define GLUL(s) glGetUniformLocation(lightPassProgram, s)
+        lightPositionLocation = GLUL("lightPosition");
+        lightColorLocation = GLUL("lightColor");
+        lightAttLocation = GLUL("lightAtt");
+        viewPosLocation = GLUL("viewPos");
+        projectionLocation = GLUL("projection");
+        viewLocation = GLUL("view");
+        modelLocation = GLUL("model");
+        far_planeLocation = GLUL("far_plane");
+        depthMapLocation = GLUL("depthMap");
+    }
+    glUniform3fv(lightPositionLocation, 1, glm::value_ptr(light.position));
+    glUniform3fv(lightColorLocation, 1, glm::value_ptr(light.color));
+    glUniform3fv(lightAttLocation, 1, glm::value_ptr(light.attenuation));
+    glUniform3fv(viewPosLocation, 1, glm::value_ptr(camera.getPosition()));
+    glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(camera.getProjection()));
+    glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(camera.getView()));
+    glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(floorModel));
+    glUniform1f(far_planeLocation, far);
+    glUniform1i(depthMapLocation, 0);
     glDrawArrays(GL_TRIANGLES, 0, 36);
     for (auto it = cubeModels.begin(); it != cubeModels.end(); ++it)
     {
-        glUniformMatrix4fv(glGetUniformLocation(lightPassProgram, "model"), 1, GL_FALSE, glm::value_ptr(*it));
+        glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(*it));
         glDrawArrays(GL_TRIANGLES, 0, 36);
     }
     glDisable(GL_STENCIL_TEST);
@@ -159,7 +166,7 @@ int main(void)
     camera.setPosition(0.0f, 1.0f, 0.0f);
     setCamera(&camera);
 
-    GLuint zPassProgram, lightPassProgram, stencilProgram, shadowProgram;
+    GLuint zPassProgram, lightPassProgram, shadowProgram;
     { // zPassProgram
         GLuint vertex = createShader(VERTEX_Z_PASS_SRC, GL_VERTEX_SHADER);
         GLuint fragment = createShader(FRAGMENT_Z_PASS_SRC, GL_FRAGMENT_SHADER);
@@ -180,17 +187,6 @@ int main(void)
         glDetachShader(lightPassProgram, vertex);
         glDeleteShader(vertex);
         glDetachShader(lightPassProgram, fragment);
-        glDeleteShader(fragment);
-    }
-    { // stencilProgram
-        GLuint vertex = createShader(VERTEX_STENCIL_SRC, GL_VERTEX_SHADER);
-        GLuint fragment = createShader(FRAGMENT_STENCIL_SRC, GL_FRAGMENT_SHADER);
-        stencilProgram = createShaderProgram(vertex, fragment);
-        linkShader(stencilProgram);
-        validateShader(stencilProgram);
-        glDetachShader(stencilProgram, vertex);
-        glDeleteShader(vertex);
-        glDetachShader(stencilProgram, fragment);
         glDeleteShader(fragment);
     }
     { // shadowProgram
@@ -309,23 +305,49 @@ int main(void)
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE);
     
+    shouldUpdateShadowMaps = true;
     while(!glfwWindowShouldClose(window))
     {
         if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         {
             break;
         }
+        if(glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
+        {
+            light.position.y += 0.1;
+            shouldUpdateShadowMaps = true;
+        }
+        if(glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS)
+        {
+            light.position.y -= 0.1;
+            shouldUpdateShadowMaps = true;
+        }
+        if(glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS)
+        {
+            light.position.x -= 0.1;
+            shouldUpdateShadowMaps = true;
+        }
+        if(glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
+        {
+            light.position.x += 0.1;
+            shouldUpdateShadowMaps = true;
+        }
 
         updateCamera(640, 480, window);
 
         int boundingBox[4];
 
-        shadowPass(shadowProgram, depthCubemap, depthMapFBO, shadowProj, light.position, cubeModels, floorModel, far, vao);
+        if(shouldUpdateShadowMaps)
+        {
+            shadowPass(shadowProgram, depthCubemap, depthMapFBO, shadowProj, light.position, cubeModels, floorModel, far, vao);
+        }
         depthPrePass(zPassProgram, vao, cubeModels, floorModel, camera);
-        lightPass(lightPassProgram, stencilProgram, vao, cubeModels, floorModel, camera, g_screenWidth, g_screenHeight, boundingBox, light, far);
+        lightPass(lightPassProgram, vao, cubeModels, floorModel, camera, g_screenWidth, g_screenHeight, boundingBox, light, far);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
+
+        shouldUpdateShadowMaps = false;
     }
 
     // Clean up
@@ -333,7 +355,6 @@ int main(void)
     glDeleteVertexArrays(1, &vao);
     glDeleteProgram(zPassProgram);
     glDeleteProgram(lightPassProgram);
-    glDeleteProgram(stencilProgram);
     glDeleteProgram(shadowProgram);
     glDeleteFramebuffers(1, &depthMapFBO);
     glDeleteTextures(1, &depthCubemap);
