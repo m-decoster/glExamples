@@ -45,13 +45,14 @@ bool Mesh::load(const char* fileName)
     {
         const aiVector3D* pos = &(mesh->mVertices[i]);
         const aiVector3D* texCoord = &(mesh->mTextureCoords[0][i]);
+        const aiVector3D* normal = &(mesh->mNormals[i]);
         
         vertices.push_back(pos->x);
         vertices.push_back(pos->y);
         vertices.push_back(pos->z);
-        vertices.push_back(1.0f); // r
-        vertices.push_back(1.0f); // g
-        vertices.push_back(1.0f); // b
+        vertices.push_back(normal->x);
+        vertices.push_back(normal->y);
+        vertices.push_back(normal->z);
         vertices.push_back(texCoord->x);
         vertices.push_back(texCoord->y);
     }
@@ -81,7 +82,7 @@ bool Mesh::load(const char* fileName)
 
     glEnableVertexAttribArray(0); // position
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), 0);
-    glEnableVertexAttribArray(1); // color
+    glEnableVertexAttribArray(1); // normal
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
     glEnableVertexAttribArray(2); // texture coordinates
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(6 * sizeof(GLfloat)));

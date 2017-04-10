@@ -8,17 +8,24 @@
 
 const char* VERTEX_SRC = "#version 330 core\n"
                          "layout(location=0) in vec3 position;"
-                         "layout(location=1) in vec3 color;"
+                         "layout(location=1) in vec3 normal;"
                          "layout(location=2) in vec2 texcoord;"
                          "uniform mat4 model;"
                          "uniform mat4 view;"
                          "uniform mat4 projection;"
+                         "uniform vec3 ambientLight;"
+                         "uniform vec3 lightPos;"
+                         "uniform vec3 lightColor;"
                          "out vec3 fColor;"
                          "out vec2 fTexcoord;"
                          "void main()"
                          "{"
-                         "    fColor = color;"
                          "    fTexcoord = texcoord;"
+                         "    vec3 normal_v = normalize(mat3(transpose(inverse(model))) * normal);"
+                         "    vec3 ms_position = vec3(model * vec4(position, 1.0));"
+                         "    vec3 lightDir = normalize(lightPos - ms_position);"
+                         "    float diff = max(dot(normal_v, -lightDir), 0.0);"
+                         "    fColor = ambientLight + diff * lightColor;"
                          "    gl_Position = projection * view * model * vec4(position, 1.0);"
                          "}"
                          ;
@@ -77,12 +84,16 @@ int main(void)
 
     float angle = 0.0f;
 
+    glm::vec3 ambientLight(0.3, 0.3, 0.3);
+    glm::vec3 lightPos(0.0f, -3.0f, -4.0f);
+    glm::vec3 lightColor(0.7, 0.5, 0.2);
+
     while(!glfwWindowShouldClose(window))
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Rotate the mesh over time so we see the 3D effect better
-        angle += glfwGetTime() * 2.0f;
+        angle += glfwGetTime();
         mesh.setAngle(angle, angle / 2.0f, 0.0f);
         glfwSetTime(0.0);
 
@@ -92,6 +103,9 @@ int main(void)
         mat.setUniform("model", model);
         mat.setUniform("view", view);
         mat.setUniform("projection", proj);
+        mat.setUniform("ambientLight", ambientLight);
+        mat.setUniform("lightPos", lightPos);
+        mat.setUniform("lightColor", lightColor);
 
         mesh.render();
 

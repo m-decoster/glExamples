@@ -84,6 +84,26 @@ bool Material::setUniform(const char* name, const glm::mat4& m)
     return true;
 }
 
+bool Material::setUniform(const char* name, const glm::vec3& m)
+{
+    if(!program)
+    {
+        std::cerr << "Program not set while trying to set uniform" << std::endl;
+        return false;
+    }
+
+    GLint loc = glGetUniformLocation(program, name);
+
+    if(loc == -1)
+    {
+        std::cerr << "Uniform '" << name << "' not found in shader" << std::endl;
+        return false;
+    }
+
+    glUniform3f(loc, m.x, m.y, m.z);
+    return true;
+}
+
 void Material::setDiffuseTexture(GLuint texture)
 {
     diffuse = texture;

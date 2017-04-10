@@ -16,6 +16,7 @@ public:
      * Set a uniform to a certain value
      */
     bool setUniform(const char* name, const glm::mat4& m);
+    bool setUniform(const char* name, const glm::vec3& m);
     /**
      * Use the underlying shader program
      */
