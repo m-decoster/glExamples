@@ -34,3 +34,5 @@
 bin/*.png
 bin/*.bmp
 bin/*.obj
+
+.vscode
