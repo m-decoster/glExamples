@@ -1,7 +1,7 @@
 #include "../common/util.h"
 #include "../common/shader.h"
 #include "material.h"
-#include "mesh.h"
+#include "scene.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -95,7 +95,7 @@ int main(void)
     glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)640/(float)480, 0.1f, 1000.0f);
     glm::mat4 view;
 
-    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -4.0f));
+    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -10.0f));
 
     Material mat0;
     if(!mat0.load(VERTEX_SRC_0, FRAGMENT_SRC_0))
@@ -121,15 +121,13 @@ int main(void)
     mat1.use();
     mat1.setDiffuseTexture(texture);
 
-    Mesh mesh;
-    if(!mesh.load("monkey.obj"))
+    Scene scene;
+    if(!scene.load("monkey.obj"))
     {
-        std::cerr << "Could not load mesh" << std::endl;
+        std::cerr << "Could not load scene" << std::endl;
     }
     
     glClearColor(0.75f, 0.75f, 0.75f, 1.0f);
-
-    float angle = 0.0f;
 
     glm::vec3 ambientLight(0.0, 0.0, 0.0);
     glm::vec3 lightPos(1.0f, 3.0f, -4.0f);
@@ -141,11 +139,6 @@ int main(void)
     while(!glfwWindowShouldClose(window))
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        // Rotate the mesh over time so we see the 3D effect better
-        angle += glfwGetTime();
-        mesh.setAngle(angle, angle / 2.0f, 0.0f);
-        glfwSetTime(0.0);
 
         int state = glfwGetKey(window, GLFW_KEY_E);
         if (state == GLFW_RELEASE && previousState == GLFW_PRESS)
@@ -162,30 +155,25 @@ int main(void)
         }
         previousState = state;
 
-        const glm::mat4& model = mesh.getModelMatrix();
+        Material* m = flat ? &mat0 : &mat1;
+        
+        m->bind();
+        m->setUniform("view", view);
+        m->setUniform("projection", proj);
+        m->setUniform("ambientLight", ambientLight);
+        m->setUniform("lightPos", lightPos);
+        m->setUniform("lightColor", lightColor);
 
-        if (!flat)
-        {
-            mat1.bind();
-            mat1.setUniform("model", model);
-            mat1.setUniform("view", view);
-            mat1.setUniform("projection", proj);
-            mat1.setUniform("ambientLight", ambientLight);
-            mat1.setUniform("lightPos", lightPos);
-            mat1.setUniform("lightColor", lightColor);
-        }
-        else
-        {
-            mat0.bind();
-            mat0.setUniform("model", model);
-            mat0.setUniform("view", view);
-            mat0.setUniform("projection", proj);
-            mat0.setUniform("ambientLight", ambientLight);
-            mat0.setUniform("lightPos", lightPos);
-            mat0.setUniform("lightColor", lightColor);
-        }
+        scene.render(m);
 
-        mesh.render();
+        state = glfwGetKey(window, GLFW_KEY_UP);
+        if (state == GLFW_PRESS) {
+            view = glm::translate(view, glm::vec3(0.0f, -0.1f, 0.0f));
+        }
+        state = glfwGetKey(window, GLFW_KEY_DOWN);
+        if (state == GLFW_PRESS) {
+            view = glm::translate(view, glm::vec3(0.0f, 0.1f, 0.0f));
+        }
 
         glfwSwapBuffers(window);
         glfwPollEvents();

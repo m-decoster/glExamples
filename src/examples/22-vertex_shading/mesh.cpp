@@ -6,7 +6,7 @@
 #include <vector>
 
 Mesh::Mesh()
-    : scale(1.0f, 1.0f, 1.0f)
+    : scale(1.0f, 1.0f, 1.0f), vao(0)
 {
 }
 
@@ -18,7 +18,7 @@ Mesh::~Mesh()
     }
 }
 
-bool Mesh::load(const char* fileName)
+bool Mesh::load(const aiMesh* mesh)
 {
     if(vao)
     {
@@ -26,21 +26,9 @@ bool Mesh::load(const char* fileName)
         return false;
     }
 
-    Assimp::Importer importer; 
-    const aiScene* scene = importer.ReadFile(fileName,
-            aiProcess_Triangulate |
-            aiProcess_JoinIdenticalVertices |
-            aiProcess_SortByPType);
-    if(!scene)
-    {
-        std::cerr << "Error loading mesh " << fileName << ": " << importer.GetErrorString() << std::endl;
-        return false;
-    }
-
     // We only load the first mesh from the Assimp scene here
     std::vector<float> vertices;
     std::vector<GLuint> indices;
-    const aiMesh* mesh = scene->mMeshes[0];
     for(int  i = 0; i < mesh->mNumVertices; ++i)
     {
         const aiVector3D* pos = &(mesh->mVertices[i]);
@@ -54,7 +42,7 @@ bool Mesh::load(const char* fileName)
         vertices.push_back(normal->y);
         vertices.push_back(normal->z);
         vertices.push_back(texCoord->x);
-        vertices.push_back(texCoord->y);
+        vertices.push_back(1.0-texCoord->y);
     }
     for(int i = 0; i < mesh->mNumFaces; ++i)
     {

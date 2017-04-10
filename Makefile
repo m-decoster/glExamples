@@ -91,7 +91,7 @@ dear_imgui:
 	$(CC) $(INCLUDES) $(CFLAGS) src/examples/21-dear_imgui/main.cpp src/examples/21-dear_imgui/imgui_impl_glfw_gl3.cpp $(COMMON) -o bin/21-dear_imgui.out $(LIBS)
 
 vertex_shading:
-	$(CC) $(INCLUDES) $(CFLAGS) src/examples/22-vertex_shading/main.cpp src/examples/22-vertex_shading/mesh.cpp src/examples/22-vertex_shading/material.cpp $(COMMON) -o bin/22-vertex_shading.out $(LIBS)
+	$(CC) $(INCLUDES) $(CFLAGS) src/examples/22-vertex_shading/main.cpp src/examples/22-vertex_shading/mesh.cpp src/examples/22-vertex_shading/material.cpp src/examples/22-vertex_shading/scene.cpp $(COMMON) -o bin/22-vertex_shading.out $(LIBS)
 	cp src/examples/22-vertex_shading/palette.png bin/palette.png
 	cp src/examples/22-vertex_shading/monkey.obj bin/monkey.obj
 
