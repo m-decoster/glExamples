@@ -75,6 +75,7 @@ To compile all examples, you can run `make` or `make all`.
     4. [Particles](#particles)
     5. [Sprite Batching](#sprite-batching)
     6. [Dear Imgui](#dear-imgui)
+    7. [Vertex Shading](#vertex-shading)
 3. Advanced
     1. [Morph Target Animation](#morph-target-animation)
     2. [Uniform Buffer Objects](#uniform-buffer-objects)
@@ -264,6 +265,20 @@ which shows how easy it is to set up imgui.
 [Code](src/examples/21-dear_imgui)
 
 ![Screenshot](img/21-dear_imgui.tiff)
+
+### Vertex Shading
+
+*Level: intermediate*
+
+**Compile**: `make vertex_shading`  
+**Run**: `cd bin; ./22-vertex_shading.out`
+
+Low poly art styles are all the rage these days. Vertex shading was a huge part of the look back before 2004.
+Switch between smooth (fragment) shading and flat (vertex) shading using E.
+
+[Code](src/examples/22-vertex_shading)
+
+![Screenshot](img/22-vertex_shading.tiff)
 
 ### Morph Target Animation
 
