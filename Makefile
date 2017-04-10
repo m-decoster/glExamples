@@ -92,8 +92,8 @@ dear_imgui:
 
 vertex_shading:
 	$(CC) $(INCLUDES) $(CFLAGS) src/examples/22-vertex_shading/main.cpp src/examples/22-vertex_shading/mesh.cpp src/examples/22-vertex_shading/material.cpp $(COMMON) -o bin/22-vertex_shading.out $(LIBS)
-	cp src/examples/22-vertex_shading/asteroid.png bin/asteroid.png
-	cp src/examples/22-vertex_shading/asteroid.obj bin/asteroid.obj
+	cp src/examples/22-vertex_shading/palette.png bin/palette.png
+	cp src/examples/22-vertex_shading/monkey.obj bin/monkey.obj
 
 clean:
 	rm bin/*
