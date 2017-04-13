@@ -28,16 +28,17 @@ bool Scene::load(const char* fileName)
             aiProcess_SortByPType);
     if(!scene)
     {
-        std::cerr << "Error loading mesh " << fileName << ": " << importer.GetErrorString() << std::endl;
+        std::cerr << "Error loading scene " << fileName << ": " << importer.GetErrorString() << std::endl;
         return false;
     }
 
     for (int m = 0; m < scene->mNumMeshes; ++m) {
         const aiMesh* aiM = scene->mMeshes[m];
 
-        Mesh* mesh = new Mesh();;
+        Mesh* mesh = new Mesh();
         if (!mesh->load(aiM))
         {
+            delete mesh;
             return false;
         }
         m_meshes.push_back(mesh);
